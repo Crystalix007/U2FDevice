@@ -51,7 +51,7 @@ struct ContPacket : Packet
 
 shared_ptr<FILE> getStream()
 {
-	static shared_ptr<FILE> stream{ fopen("/dev/hidg0", "rwb"), [](FILE *f){
+	static shared_ptr<FILE> stream{ fopen("/dev/hidg0", "ab+"), [](FILE *f){
 			fclose(f);
 	} };
 
@@ -65,7 +65,12 @@ vector<uint8_t> readBytes(const size_t count)
 {
 	vector<uint8_t> bytes(count);
 
-	const auto readByteCount = fread(bytes.data(), 1, count, getStream().get());
+	size_t readByteCount;
+	
+	do
+	{
+		readByteCount = fread(bytes.data(), 1, count, getStream().get());
+	} while (readByteCount == 0);
 
 	clog << "Read " << readByteCount << " bytes" << endl;
 
@@ -90,6 +95,7 @@ shared_ptr<InitPacket> InitPacket::getPacket(const uint32_t rCID, const uint8_t 
 	const auto dataBytes = readBytes(p->data.size());
 	copy(dataBytes.begin(), dataBytes.end(), p->data.data());
 
+	clog << "Fully read init packet" << endl;
 	return p;
 }
 
@@ -102,17 +108,16 @@ shared_ptr<ContPacket> ContPacket::getPacket(const uint32_t rCID, const uint8_t 
 	const auto dataBytes = readBytes(p->data.size());
 	copy(dataBytes.begin(), dataBytes.end(), p->data.data());
 
+	clog << "Fully read cont packet" << endl;
 	return p;
 }
 
 shared_ptr<Packet> Packet::getPacket()
 {
-	clog << "Making generic packet" << endl;
 	const uint32_t cid = *reinterpret_cast<uint32_t*>(readBytes(4).data());
-	clog << "Grabbed cid" << endl;
 	uint8_t b = readBytes(1)[0];
 
-	clog << "b: " << static_cast<uint16_t>(b) << endl;
+	clog << "Packet read 2nd byte as " << static_cast<uint16_t>(b) << endl;
 
 	if (b && TYPE_MASK)
 	{
@@ -128,27 +133,35 @@ shared_ptr<Packet> Packet::getPacket()
 
 void Packet::writePacket()
 {
-	fwrite(&cid, 4, 1, getStream().get());
+	//auto stream = getStream().get();
+	auto stream = stdout;
+	fwrite(&cid, 4, 1, stream);
 }
 
 void InitPacket::writePacket()
 {
 	Packet::writePacket();
-	auto stream = getStream().get();
+	//auto stream = getStream().get();
+	auto stream = stdout;
 
 	fwrite(&cmd,        1,           1, stream);
 	fwrite(&bcnth,      1,           1, stream);
 	fwrite(&bcntl,      1,           1, stream);
 	fwrite(data.data(), data.size(), 1, stream);
+
+	clog << "Fully wrote init packet" << endl;
 }
 
 void ContPacket::writePacket()
 {
 	Packet::writePacket();
-	auto stream = getStream().get();
+	//auto stream = getStream().get();
+	auto stream = stdout;
 
 	fwrite(&seq,        1,           1, stream);
 	fwrite(data.data(), data.size(), 1, stream);
+
+	clog << "Fully wrote cont packet" << endl;
 }
 
 struct U2FMessage
@@ -230,6 +243,9 @@ struct U2FMessage
 			p.writePacket();
 			seq++;
 		}
+
+		auto stream = getStream().get();
+		fflush(stream);
 	}
 };
 
@@ -288,6 +304,8 @@ struct U2F_Init_Response : U2F_CMD
 		m.data.insert(m.data.begin() + 14, FIELD(minorDevVer));
 		m.data.insert(m.data.begin() + 15, FIELD(buildDevVer));
 		m.data.insert(m.data.begin() + 16, FIELD(capabilities));
+
+		m.write();
 	}
 };
 
@@ -300,14 +318,15 @@ int main()
 	resp.cid          = 0xF1D0F1D0;
 	resp.nonce        = initFrame.nonce;
 	resp.protocolVer  = 2;
-	resp.majorDevVer  = 0;
+	resp.majorDevVer  = 1;
 	resp.minorDevVer  = 0;
-	resp.buildDevVer  = 0;
+	resp.buildDevVer  = 1;
 	resp.capabilities = CAPFLAG_WINK;
 
 	resp.write();
+
 	U2FMessage m = m.read();
 
 	for (const auto d : m.data)
-		cout << static_cast<uint16_t>(d) << endl;
+		clog << static_cast<uint16_t>(d) << endl;
 }
