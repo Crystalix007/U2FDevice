@@ -9,7 +9,7 @@
 
 using namespace std;
 
-const constexpr uint16_t packetSize = 32;
+const constexpr uint16_t packetSize = 64;
 
 struct Packet
 {
@@ -41,7 +41,7 @@ struct InitPacket : Packet
 struct ContPacket : Packet
 {
 	uint8_t                         seq;
-	array<uint8_t, packetSize - 7> data{};
+	array<uint8_t, packetSize - 5> data{};
 
 	public:
 		ContPacket() = default;
@@ -49,10 +49,36 @@ struct ContPacket : Packet
 		void writePacket() override;
 };
 
-shared_ptr<FILE> getStream()
+shared_ptr<FILE> getHostStream()
 {
 	static shared_ptr<FILE> stream{ fopen("/dev/hidg0", "ab+"), [](FILE *f){
 			fclose(f);
+	} };
+
+	if (!stream)
+		clog << "Stream is unavailable" << endl;
+
+	return stream;
+}
+
+shared_ptr<FILE> getComHostStream()
+{
+	static shared_ptr<FILE> stream{ fopen("comhost.txt", "wb"), [](FILE *f){
+		clog << "Closing comhost stream" << endl;
+		fclose(f);
+	} };
+
+	if (!stream)
+		clog << "Stream is unavailable" << endl;
+
+	return stream;
+}
+
+shared_ptr<FILE> getComDevStream()
+{
+	static shared_ptr<FILE> stream{ fopen("comdev.txt", "wb"), [](FILE *f){
+		clog << "Closing comdev stream" << endl;	
+		fclose(f);
 	} };
 
 	if (!stream)
@@ -69,7 +95,8 @@ vector<uint8_t> readBytes(const size_t count)
 	
 	do
 	{
-		readByteCount = fread(bytes.data(), 1, count, getStream().get());
+		readByteCount = fread(bytes.data(), 1, count, getHostStream().get());
+		fwrite(bytes.data(), 1, bytes.size(), getComHostStream().get());
 	} while (readByteCount == 0);
 
 	clog << "Read " << readByteCount << " bytes" << endl;
@@ -87,10 +114,6 @@ shared_ptr<InitPacket> InitPacket::getPacket(const uint32_t rCID, const uint8_t 
 	p->cmd        = rCMD;
 	p->bcnth      = readBytes(1)[0];
 	p->bcntl      = readBytes(1)[0];
-	/*uint16_t pLen =   p->bcnth;
-	p->bcnth      <<= 8;
-	p->bcnth      +=  p->bcntl;
-	*/
 
 	const auto dataBytes = readBytes(p->data.size());
 	copy(dataBytes.begin(), dataBytes.end(), p->data.data());
@@ -133,34 +156,46 @@ shared_ptr<Packet> Packet::getPacket()
 
 void Packet::writePacket()
 {
-	//auto stream = getStream().get();
-	auto stream = stdout;
-	fwrite(&cid, 4, 1, stream);
+	const uint8_t reportID = FIDO_USAGE_DATA_OUT;
+	auto hostStream = getHostStream().get();
+	auto devStream  = getComDevStream().get();
+
+	fwrite(&reportID, 1, 1, hostStream);
+	fwrite(&cid,      4, 1, hostStream);
+	fwrite(&cid,      4, 1, devStream);
 }
 
 void InitPacket::writePacket()
 {
 	Packet::writePacket();
-	//auto stream = getStream().get();
-	auto stream = stdout;
+	auto hostStream = getHostStream().get();
+	auto devStream  = getComDevStream().get();
 
-	fwrite(&cmd,        1,           1, stream);
-	fwrite(&bcnth,      1,           1, stream);
-	fwrite(&bcntl,      1,           1, stream);
-	fwrite(data.data(), data.size(), 1, stream);
+	fwrite(&cmd,        1,           1, hostStream);
+	fwrite(&bcnth,      1,           1, hostStream);
+	fwrite(&bcntl,      1,           1, hostStream);
+	fwrite(data.data(), 1, data.size(), hostStream);
+	fwrite(&cmd,        1,           1, devStream);
+	fwrite(&bcnth,      1,           1, devStream);
+	fwrite(&bcntl,      1,           1, devStream);
+	fwrite(data.data(), 1, data.size(), devStream);
 
+	perror(nullptr);
 	clog << "Fully wrote init packet" << endl;
 }
 
 void ContPacket::writePacket()
 {
 	Packet::writePacket();
-	//auto stream = getStream().get();
-	auto stream = stdout;
+	auto hostStream = getHostStream().get();
+	auto devStream  = getComDevStream().get();
 
-	fwrite(&seq,        1,           1, stream);
-	fwrite(data.data(), data.size(), 1, stream);
+	fwrite(&seq,        1,           1, hostStream);
+	fwrite(data.data(), 1, data.size(), hostStream);
+	fwrite(&seq,        1,           1, devStream);
+	fwrite(data.data(), 1, data.size(), devStream);
 
+	perror(nullptr);
 	clog << "Fully wrote cont packet" << endl;
 }
 
@@ -209,6 +244,7 @@ struct U2FMessage
 	
 	void write()
 	{
+		fflush(getHostStream().get());
 		const uint16_t bytesToWrite = this->data.size();
 		uint16_t bytesWritten = 0;
 
@@ -244,7 +280,7 @@ struct U2FMessage
 			seq++;
 		}
 
-		auto stream = getStream().get();
+		auto stream = getHostStream().get();
 		fflush(stream);
 	}
 };
@@ -325,8 +361,8 @@ int main()
 
 	resp.write();
 
-	U2FMessage m = m.read();
+	/*U2FMessage m = m.read();
 
 	for (const auto d : m.data)
-		clog << static_cast<uint16_t>(d) << endl;
+		clog << static_cast<uint16_t>(d) << endl;*/
 }
