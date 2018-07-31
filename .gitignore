@@ -1,4 +1,9 @@
-deleteme
 SOut.txt
 comdev.txt
 comhost.txt
+libuECC.o
+monitor
+obj/*
+U2F_Priv_Keys.txt
+devpackets.txt
+hostpackets.txt

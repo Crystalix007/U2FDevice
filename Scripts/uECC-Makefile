@@ -1,0 +1,27 @@
+#!/usr/bin/env make
+
+SRC_DIR  := .
+OBJ_DIR  := obj
+LDFLAGS  := -r
+CPPFLAGS :=
+CXXFLAGS := --std=c++14
+
+CXXFLAGS += -MMD -MP
+MODULESC := $(wildcard $(SRC_DIR)/*.c)
+MODULESI := $(SRC_DIR)/curve-specific.inc
+OBJECTSC := $(MODULESC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+OBJECTSI := $(MODULESI:$(SRC_DIR)/%.inc=$(OBJ_DIR)/%.o)
+OBJECTS  := $(OBJECTSC) $(OBJECTSI)
+
+libuECC.o: $(OBJECTS)
+	ld $(LDFLAGS) -o $@ $^
+
+$(OBJECTSC): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(@D)
+	@g++ $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJECTSI): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.inc
+	@mkdir -p $(@D)
+	@g++ -x c $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+-include $(OBJECTS:.o=.d)
