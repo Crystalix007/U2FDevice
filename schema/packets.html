@@ -1,0 +1,78 @@
+<html>
+	<head>
+		<title>Packets</title>
+		<style>
+			table {
+				display: table;
+				width: 100%;
+				border-collapse: collapse;
+				box-sizing: border-box;
+			}
+
+			th.data {
+				text-align: left;
+			}
+
+			td {
+				font-family: "Courier New", Courier, monospace;
+				white-space: pre;
+			}
+
+			td.data {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				max-width:1px;
+				width:100%;
+			}
+
+			td.data:hover {
+				white-space: pre-wrap;
+			}
+
+			table, th, td {
+				border: 1px solid black;
+			}
+		</style>
+	</head>
+
+	<body>
+		<table>
+			<thead>
+				<tr>
+					<th>CID</th>
+					<th>CMD</th>
+					<th>BCNTH</th>
+					<th>BCNTL</th>
+					<th class="data">DATA</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>%08X</td>
+					<td>%u</td>
+					<td>%u</td>
+					<td>%u</td>
+					<td class="data">0x$DATA</td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+		<table>
+			<thead>
+				<tr>
+					<th>CID</th>
+					<th>SEQ</th>
+					<th class="data">DATA</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>%08X</td>
+					<td>%u</td>
+					<td class="data">0x$DATA</td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+	</body>
+</html>

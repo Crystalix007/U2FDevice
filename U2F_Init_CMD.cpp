@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include "U2FMessage.hpp"
 #include "u2f.hpp"
+#include <iostream>
 
 using namespace std;
 
@@ -16,6 +17,8 @@ U2F_Init_CMD U2F_Init_CMD::get()
 
 	U2F_Init_CMD cmd;
 	cmd.nonce = *reinterpret_cast<const uint64_t*>(message.data.data());
+
+	clog << "Fully read nonce" << endl;
 
 	return cmd;
 }

@@ -1,0 +1,20 @@
+#!/usr/bin/env make
+
+SRC_DIR  := .
+OBJ_DIR  := .
+LDFLAGS  := -r
+CPPFLAGS :=
+CXXFLAGS := --std=c++14
+
+CXXFLAGS += -MMD -MP
+MODULESC := $(SRC_DIR)/base64.cpp
+OBJECTS := $(MODULESC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
+
+libcppb64.o: $(OBJECTS)
+	ld $(LDFLAGS) -o $@ $^
+
+$(OBJECTS): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(@D)
+	@g++ $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+-include $(OBJECTS:.o=.d)

@@ -2,7 +2,9 @@
 #include "Packet.hpp"
 #include <stdexcept>
 #include <iostream>
+#include <iomanip>
 #include "Streams.hpp"
+#include "u2f.hpp"
 
 using namespace std;
 
@@ -34,19 +36,22 @@ U2FMessage U2FMessage::read()
 			throw runtime_error{ "Packet out of sequence" };
 
 		const uint16_t remainingBytes = messageSize - message.data.size();
-		clog << "Remaining bytes: " << remainingBytes << endl;
 		const uint16_t copyBytes = min(static_cast<uint16_t>(newPack->data.size()), remainingBytes);
 		message.data.insert(message.data.end(), newPack->data.begin(), newPack->data.begin() + copyBytes);
 
 		currSeq++;
 	}
 
+	std::clog << "Read all of message" << std::endl;
+
 	return message;
 }
 
 void U2FMessage::write()
 {
+	clog << "Flushing host stream" << endl;
 	fflush(getHostStream().get());
+	clog << "Flushed host stream" << endl;
 	const uint16_t bytesToWrite = this->data.size();
 	uint16_t bytesWritten = 0;
 
@@ -80,8 +85,38 @@ void U2FMessage::write()
 		copy(data.begin() + bytesWritten, data.begin() + bytesWritten + newByteCount, p.data.begin());
 		p.writePacket();
 		seq++;
+		bytesWritten += newByteCount;
 	}
 
 	auto stream = getHostStream().get();
 	fflush(stream);
+
+	if (cmd == U2FHID_MSG)
+	{
+		auto dAS = getDevAPDUStream().get();
+	
+		fprintf(dAS, "<table>\n"
+				"\t\t\t<thead>\n"
+				"\t\t\t\t<tr>\n"
+				"\t\t\t\t\t<th>DATA</th>\n"
+				"\t\t\t\t\t<th>ERR</th>\n"
+				"\t\t\t\t</tr>\n"
+				"\t\t\t</thead>\n"
+				"\t\t\t<tbody>\n"
+				"\t\t\t\t<tr>\n"
+				"\t\t\t\t\t<td class=\"data\">");
+		
+		for (size_t i = 0; i < data.size() - 2; i++)
+			fprintf(dAS, "%3u ", data[i]);
+	
+		uint16_t err = data[data.size() - 2] << 8;
+		err |= data.back();
+	
+		fprintf(dAS, "</td>\n"
+				"\t\t\t\t\t<td>0x%04X</td>\n"
+				"\t\t\t\t</tr>\n"
+				"\t\t\t</tbody>\n"
+				"\t\t</table>\n"
+				"\t\t<br />", err);
+	}
 }

@@ -18,11 +18,12 @@
 
 using namespace std;
 
-int main()
+int main(int argc, char** argv)
 {
 	Storage::init();
 
 	auto initFrame = U2F_Init_CMD::get();
+
 	U2F_Init_Response resp{};
 
 	resp.cid          = 0xF1D0F1D0;
@@ -35,9 +36,18 @@ int main()
 
 	resp.write();
 
-	auto m = U2F_Msg_CMD::get();
+	size_t msgCount = (argc == 2 ? stoul(argv[1]) : 3u);
 
-	cout << "U2F CMD ins: " << static_cast<uint32_t>(m->ins) << endl;
+	for (size_t i = 0; i < msgCount; i++)
+	{
+		auto reg = U2F_Msg_CMD::get();
+	
+		cout << "U2F CMD ins: " << static_cast<uint32_t>(reg->ins) << endl;
+	
+		reg->respond();
+	
+		clog << "Fully responded" << endl;
+	}
 
 	/*auto m = U2FMessage::read();
 

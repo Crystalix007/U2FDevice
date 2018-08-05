@@ -1,9 +1,10 @@
 #include "Base64.hpp"
 #include <sstream>
-#include <b64/encode.h>
-#include <b64/decode.h>
+#include "cpp-base64/base64.h"
 #include <array>
+#include <vector>
 #include <algorithm>
+#include "Field.hpp"
 
 template <typename InContainer, typename OutContainer>
 void b64encode(const InContainer &iContainer, OutContainer &oContainer)
@@ -32,22 +33,18 @@ void b64decode(const InContainer &iContainer, std::array<Elem, count> &oArr)
 template <typename InContainerIter, typename OutContainerIter>
 void b64encode(const InContainerIter beginIter, const InContainerIter endIter, OutContainerIter oBeginIter)
 {
-	std::stringstream oss, iss{ std::string{ beginIter, endIter } };
-	base64::encoder encoder{};
-	encoder.encode(iss, oss);
+	std::vector<uint8_t> rawBytes{};
 
-	auto oStr = oss.str();
-	oStr.erase(std::remove_if(oStr.begin(), oStr.end(), [](auto charac){ return charac == '\n'; }), oStr.end());
-	copy(oStr.begin(), oStr.end(), oBeginIter);
+	for (auto iter = beginIter; iter != endIter; iter++)
+		rawBytes.insert(rawBytes.end(), FIELD(*iter));
+
+	auto encoded = base64_encode(rawBytes.data(), rawBytes.size());
+	std::copy(encoded.begin(), encoded.end(), oBeginIter);
 }
 
 template <typename InContainerIter, typename OutContainerIter>
 void b64decode(const InContainerIter beginIter, const InContainerIter endIter, OutContainerIter oBeginIter)
 {
-	std::stringstream oss, iss{ std::string{ beginIter, endIter } };
-	base64::decoder decoder{};
-	decoder.decode(iss, oss);
-
-	auto oStr = oss.str();
-	copy(oStr.begin(), oStr.end(), oBeginIter);
+	auto decoded = base64_decode(std::string{ beginIter, endIter });
+	std::copy(decoded.begin(), decoded.end(), oBeginIter);
 }

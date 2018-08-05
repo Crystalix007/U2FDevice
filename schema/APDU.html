@@ -1,0 +1,81 @@
+<html>
+	<head>
+		<title>Packets</title>
+		<style>
+			table {
+				display: table;
+				width: 100%;
+				border-collapse: collapse;
+				box-sizing: border-box;
+			}
+
+			th.data {
+				text-align: left;
+			}
+
+			td {
+				font-family: "Courier New", Courier, monospace;
+				white-space: pre;
+			}
+
+			td.data {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: pre;
+				max-width:1px;
+				width:100%;
+			}
+
+			td.data:hover {
+				white-space: pre-wrap;
+			}
+
+			table, th, td {
+				border: 1px solid black;
+			}
+		</style>
+	</head>
+
+	<body>
+		<table>
+			<thead>
+				<tr>
+					<th>CLA</th>
+					<th>INS</th>
+					<th>P1</th>
+					<th>P2</th>
+					<th>Lc</th>
+					<th class="data">Data</th>
+					<th>Le</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td>0x%X</td>
+					<td>0x%X</td>
+					<td>%u</td>
+					<td>%u</td>
+					<td>%u</td>
+					<td class="data">$DATA</td>
+					<td>%u</td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+		<table>
+			<thead>
+				<tr>
+					<th>Data</th>
+					<th>ERR</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td class="data">$DATA</td>
+					<td>%X</td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+	</body>
+</html>

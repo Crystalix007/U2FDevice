@@ -5,6 +5,10 @@
 #include "Certificates.hpp"
 #include <mbedtls/sha256.h>
 #include <iostream>
+#include "APDU.hpp"
+#include "U2FMessage.hpp"
+#include "u2f.hpp"
+#include "Signature.hpp"
 
 using namespace std;
 
@@ -23,63 +27,51 @@ U2F_Register_APDU::U2F_Register_APDU(const U2F_Msg_CMD &msg, const vector<uint8_
 	copy(data.data() + 32, data.data() + 64, appP.begin());
 
 	//Use crypto lib to generate keypair
+	Storage::PrivKey privKey{};
+	Storage::PubKey pubKey{};
 	
-	uint8_t pub[65];
-	uint8_t priv[32];
-
 	//Unsure if necessary
 	//From github.com/pratikd650/Teensy_U2F/blob/master/Teensy_U2F.cpp
-	pub[0] = 0x04;
+	pubKey[0] = 0x04;
 
-	uECC_make_key(pub + 1, priv, uECC_secp256r1());
+	uECC_make_key(pubKey.data() + 1, privKey.data(), uECC_secp256r1());
 
-	Storage::PrivKey privKey{};
-	copy(priv, end(priv), privKey.begin());
-	Storage::PubKey pubKey;
-	copy(pub,  end(pub), pubKey.begin()); 
-
-	this->keyH = Storage::appParams.size();
+	this->keyH = Storage::appParams.size(); //To increment the key handle
 	Storage::appParams[this->keyH] = appP;
 	Storage::privKeys[this->keyH]  = privKey;
 	Storage::pubKeys[this->keyH]   = pubKey;
-}
+	Storage::keyCounts[this->keyH] = 0;
 
-//Ripped from https://github.com/pratikd650/Teensy_U2F/blob/master/Teensy_U2F.cpp
-void appendSignatureAsDER(vector<uint8_t> &response, const array<uint8_t, 64> &signature) {
-	response.push_back(0x30); // Start of ASN.1 SEQUENCE
-	response.push_back(68);   //total length from (2 * (32 + 2)) to (2 * (33 + 2))
-	auto &count = response.back();
+	clog << "Produced pub key: " << hex;
 
-	// Loop twice - for R and S
-	for(unsigned int i = 0; i < 2; i++) {
-		unsigned int sigOffs = i * 32;
-		response.push_back(0x02);  //header: integer
-		response.push_back(32);    //32 byte
-		if (signature[sigOffs] > 0x7f) { // Integer needs to be represented in 2's completement notion
-			response.back()++;
-			response.push_back(0); // add leading 0, to indicate it is a positive number
-			count++;
-		}
-		copy(signature.begin() + sigOffs, signature.begin() + sigOffs + 32, back_inserter(response)); //R or S value
-	}
+	for (auto b : pubKey)
+		clog << static_cast<uint32_t>(b) << ' ';
+
+	clog << endl << dec << "Got U2F_Reg request" << endl;
 }
 
 void U2F_Register_APDU::respond()
 {
+	U2FMessage m{};
+	m.cid = 0xF1D0F1D0;
+	m.cmd = U2FHID_MSG;
+
+	auto& response = m.data;
 	const auto appParam = Storage::appParams[this->keyH];
 	const auto pubKey   = Storage::pubKeys[this->keyH];
 	const auto privKey  = Storage::privKeys[this->keyH];
 
-	vector<uint8_t> response;
 	response.push_back(0x05);
 	copy(pubKey.begin(), pubKey.end(), back_inserter(response));
 	response.push_back(sizeof(this->keyH));
+
 	auto fakeKeyHBytes = reinterpret_cast<uint8_t *>(&this->keyH);
-	copy(fakeKeyHBytes, fakeKeyHBytes + 4, back_inserter(response));
+	copy(fakeKeyHBytes, fakeKeyHBytes + sizeof(this->keyH), back_inserter(response));
+
 	copy(attestCert, end(attestCert), back_inserter(response));
 
 	//Gen signature
-	array<uint8_t, 32> digest;
+	Digest digest;
 	{
 		mbedtls_sha256_context shaContext;
 
@@ -97,13 +89,22 @@ void U2F_Register_APDU::respond()
 
 		mbedtls_sha256_update(&shaContext, reinterpret_cast<const unsigned char*>(pubKey.data()), pubKey.size());
 
-		mbedtls_sha256_finish(&shaContext, reinterpret_cast<unsigned char*>(digest.data()));
+		mbedtls_sha256_finish(&shaContext, digest.data());
 		mbedtls_sha256_free(&shaContext);
 	}
 
-	array<uint8_t, 64> signature;
+	Signature signature;
+	std::clog << "Will sign digest with priv key" << std::endl;
 	uECC_sign(attestPrivKey, digest.data(), digest.size(), signature.data(), uECC_secp256r1());
 
 	//Append signature as DER
+	std::clog << "Will append sig as DER" << std::endl;
 	appendSignatureAsDER(response, signature);
+
+	response.push_back(static_cast<uint16_t>(APDU_STATUS::SW_NO_ERROR) >> 8);
+	response.push_back(static_cast<uint16_t>(APDU_STATUS::SW_NO_ERROR) & 0xff);
+
+	std::clog << "Writing out " << response.size() << " bytes in response" << std::endl;
+
+	m.write();
 }

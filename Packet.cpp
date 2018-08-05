@@ -19,8 +19,32 @@ shared_ptr<InitPacket> InitPacket::getPacket(const uint32_t rCID, const uint8_t 
 	copy(dataBytes.begin(), dataBytes.end(), p->data.begin());
 
 	auto hPStream = getHostPacketStream().get();
-	fprintf(hPStream, "\n");
-	fwrite(dataBytes.data(), 1, dataBytes.size(), hPStream);
+	fprintf(hPStream, "\t\t<table>\n"
+			"\t\t\t<thead>\n"
+			"\t\t\t\t<tr>\n"
+			"\t\t\t\t\t<th>CID</th>\n"
+			"\t\t\t\t\t<th>CMD</th>\n"
+			"\t\t\t\t\t<th>BCNTH</th>\n"
+			"\t\t\t\t\t<th>BCNTL</th>\n"
+			"\t\t\t\t\t<th class=\"data\">DATA</th>\n"
+			"\t\t\t\t</tr>\n"
+			"\t\t\t</thead>\n"
+			"\t\t\t<tbody>\n"
+			"\t\t\t\t<tr>\n"
+			"\t\t\t\t\t<td>0x%08X</td>\n"
+			"\t\t\t\t\t<td>%u</td>\n"
+			"\t\t\t\t\t<td>%u</td>\n"
+			"\t\t\t\t\t<td>%u</td>\n"
+			"\t\t\t\t\t<td class=\"data\">", p->cid, p->cmd, p->bcnth, p->bcntl);
+
+	for (auto elem : dataBytes)
+		fprintf(hPStream, "%3u ", elem);
+
+	fprintf(hPStream, "</td>\n"
+			"\t\t\t\t</tr>\n"
+			"\t\t\t</tbody>\n"
+			"\t\t</table>"
+			"\t\t<br />");
 
 	clog << "Fully read init packet" << endl;
 	return p;
@@ -36,9 +60,30 @@ shared_ptr<ContPacket> ContPacket::getPacket(const uint32_t rCID, const uint8_t 
 	copy(dataBytes.begin(), dataBytes.end(), p->data.begin());
 
 	auto hPStream = getHostPacketStream().get();
-	fwrite(dataBytes.data(), 1, dataBytes.size(), hPStream);
+	fprintf(hPStream, "\t\t<table>\n"
+			"\t\t\t<thead>\n"
+			"\t\t\t\t<tr>\n"
+			"\t\t\t\t\t<th>CID</th>\n"
+			"\t\t\t\t\t<th>SEQ</th>\n"
+			"\t\t\t\t\t<th class=\"data\">DATA</th>\n"
+			"\t\t\t\t</tr>\n"
+			"\t\t\t</thead>\n"
+			"\t\t\t<tbody>\n"
+			"\t\t\t\t<tr>\n"
+			"\t\t\t\t\t<td>0x%08X</td>\n"
+			"\t\t\t\t\t<td>%u</td>\n"
+			"\t\t\t\t\t<td class=\"data\">", p->cid, p->seq);
 
-	clog << "Fully read cont packet" << endl;
+	for (auto elem : dataBytes)
+		fprintf(hPStream, "%3u ", elem);
+
+	fprintf(hPStream, "</td>\n"
+			"\t\t\t\t</tr>\n"
+			"\t\t\t</tbody>\n"
+			"\t\t</table>\n"
+			"\t\t<br />");
+
+	//clog << "Fully read cont packet" << endl;
 	return p;
 }
 
@@ -47,7 +92,7 @@ shared_ptr<Packet> Packet::getPacket()
 	const uint32_t cid = *reinterpret_cast<uint32_t*>(readBytes(4).data());
 	uint8_t b = readBytes(1)[0];
 
-	clog << "Packet read 2nd byte as " << static_cast<uint16_t>(b) << endl;
+	//clog << "Packet read 2nd byte as " << static_cast<uint16_t>(b) << endl;
 
 	if (b & TYPE_MASK)
 	{
@@ -80,11 +125,36 @@ void InitPacket::writePacket()
 	fwrite(this->buf,     packetSize,            1, hostStream);
 	fwrite(this->buf,     packetSize,            1,  devStream);
 
-	perror(nullptr);
+	if (errno != 0)
+		perror("perror " __FILE__ " 85");
 
 	auto dPStream = getDevPacketStream().get();
-	fprintf(dPStream, "\n");
-	fwrite(data.data(), 1, data.size(), dPStream);
+	fprintf(dPStream, "\t\t<table>\n"
+			"\t\t\t<thead>\n"
+			"\t\t\t\t<tr>\n"
+			"\t\t\t\t\t<th>CID</th>\n"
+			"\t\t\t\t\t<th>CMD</th>\n"
+			"\t\t\t\t\t<th>BCNTH</th>\n"
+			"\t\t\t\t\t<th>BCNTL</th>\n"
+			"\t\t\t\t\t<th class=\"data\">DATA</th>\n"
+			"\t\t\t\t</tr>\n"
+			"\t\t\t</thead>\n"
+			"\t\t\t<tbody>\n"
+			"\t\t\t\t<tr>\n"
+			"\t\t\t\t\t<td>0x%08X</td>\n"
+			"\t\t\t\t\t<td>%u</td>\n"
+			"\t\t\t\t\t<td>%u</td>\n"
+			"\t\t\t\t\t<td>%u</td>\n"
+			"\t\t\t\t\t<td class=\"data\">", cid, cmd, bcnth, bcntl);
+
+	for (auto elem : data)
+		fprintf(dPStream, "%3u ", elem);
+
+	fprintf(dPStream, "</td>\n"
+			"\t\t\t\t</tr>\n"
+			"\t\t\t</tbody>\n"
+			"\t\t</table>"
+			"\t\t<br />");
 
 	clog << "Fully wrote init packet" << endl;
 }
@@ -100,10 +170,31 @@ void ContPacket::writePacket()
 	fwrite(this->buf,      packetSize,           1, hostStream);
 	fwrite(this->buf,      packetSize,           1,  devStream);
 
-	perror(nullptr);
+	if (errno != 0)
+		perror("perror " __FILE__ " 107");
 
 	auto dPStream = getDevPacketStream().get();
-	fwrite(data.data(), 1, data.size(), dPStream);
 
-	clog << "Fully wrote cont packet" << endl;
+	fprintf(dPStream, "\t\t<table>\n"
+			"\t\t\t<thead>\n"
+			"\t\t\t\t<tr>\n"
+			"\t\t\t\t\t<th>CID</th>\n"
+			"\t\t\t\t\t<th>SEQ</th>\n"
+			"\t\t\t\t\t<th class=\"data\">DATA</th>\n"
+			"\t\t\t\t</tr>\n"
+			"\t\t\t</thead>\n"
+			"\t\t\t<tbody>\n"
+			"\t\t\t\t<tr>\n"
+			"\t\t\t\t\t<td>0x%08X</td>\n"
+			"\t\t\t\t\t<td>%u</td>\n"
+			"\t\t\t\t\t<td class=\"data\">", cid, seq);
+
+	for (auto elem : data)
+		fprintf(dPStream, "%3u ", elem);
+
+	fprintf(dPStream, "</td>\n"
+			"\t\t\t\t</tr>\n"
+			"\t\t\t</tbody>\n"
+			"\t\t</table>\n"
+			"\t\t<br />");
 }

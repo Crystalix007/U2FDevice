@@ -1,3 +1,6 @@
 [submodule "micro-ecc"]
 	path = micro-ecc
 	url = https://github.com/kmackay/micro-ecc.git
+[submodule "cpp-base64"]
+	path = cpp-base64
+	url = https://github.com/ReneNyffenegger/cpp-base64.git

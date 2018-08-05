@@ -14,6 +14,7 @@ struct U2F_Init_Response : U2F_CMD
 
 	void write()
 	{
+		std::clog << "Beginning writeout of U2F_Init_Response" << std::endl;
 		U2FMessage m{};
 		m.cid = CID_BROADCAST;
 		m.cmd = U2FHID_INIT;
@@ -26,6 +27,9 @@ struct U2F_Init_Response : U2F_CMD
 		m.data.insert(m.data.begin() + 15, FIELD(buildDevVer));
 		m.data.insert(m.data.begin() + 16, FIELD(capabilities));
 
+		std::clog << "Finished inserting U2F_Init_Response fields to data buffer" << std::endl;
+
 		m.write();
+		std::clog << "Completed writeout of U2F_Init_Response" << std::endl;
 	}
 };

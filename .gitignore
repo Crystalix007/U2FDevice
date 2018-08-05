@@ -2,8 +2,11 @@ SOut.txt
 comdev.txt
 comhost.txt
 libuECC.o
+libcppb64.o
 monitor
 obj/*
 U2F_Priv_Keys.txt
-devpackets.txt
-hostpackets.txt
+devAPDU.html
+devpackets.html
+hostAPDU.html
+hostpackets.html

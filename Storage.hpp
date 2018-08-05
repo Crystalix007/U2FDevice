@@ -1,3 +1,4 @@
+#pragma once
 #include <map>
 #include <array>
 #include <string>
@@ -7,6 +8,7 @@ class Storage
 {
 public:
 	using KeyHandle = uint32_t;
+	using KeyCount  = uint32_t;
 	using AppParam  = std::array<uint8_t, 32>;
 	using PrivKey   = std::array<uint8_t, 32>;
 	using PubKey    = std::array<uint8_t, 65>;
@@ -22,4 +24,5 @@ public:
 		static std::map<KeyHandle, AppParam> appParams;
 		static std::map<KeyHandle, PrivKey>  privKeys;
 		static std::map<KeyHandle, PubKey>   pubKeys;
+		static std::map<KeyHandle, KeyCount> keyCounts;
 };
