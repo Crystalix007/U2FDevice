@@ -1,3 +1,4 @@
+#pragma once
 #include <cstdint>
 #include "U2FMessage.hpp"
 #include "Field.hpp"

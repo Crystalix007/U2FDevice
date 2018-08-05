@@ -1,3 +1,4 @@
+#pragma once
 #include <cstdint>
 
 extern uint8_t attestCert[557];
