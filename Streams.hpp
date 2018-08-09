@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <memory>
 
-std::shared_ptr<FILE> getHostStream();
+std::shared_ptr<int>  getHostDescriptor();
 std::shared_ptr<FILE> getComHostStream();
 std::shared_ptr<FILE> getHostPacketStream();
 std::shared_ptr<FILE> getHostAPDUStream();

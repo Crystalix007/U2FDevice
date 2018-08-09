@@ -8,16 +8,17 @@
 #include "APDU.hpp"
 #include <iostream>
 #include "Streams.hpp"
+#include "Field.hpp"
 
 using namespace std;
 
 uint32_t U2F_Msg_CMD::getLe(const uint32_t byteCount, vector<uint8_t> bytes)
 {
-	if (byteCount > 3)
-		throw runtime_error{ "Too much data for command" };
 	if (byteCount != 0)
 	{
 		//Le must be length of data in bytes
+		clog << "Le must be length of data in bytes" << endl;
+		clog << "Le has a size of " << byteCount << " bytes" << endl;
 
 		switch (byteCount)
 		{
@@ -27,44 +28,47 @@ uint32_t U2F_Msg_CMD::getLe(const uint32_t byteCount, vector<uint8_t> bytes)
 				//Don't handle non-compliance with spec here
 				//This case is only possible if extended Lc used
 				//CBA
-				return (bytes[0] == 0 && bytes[1] == 0 ? 65536 : bytes[0] << 8 + bytes[1]);
+				return (bytes[0] == 0 && bytes[1] == 0 ? 65536 : (bytes[0] << 8) + bytes[1]);
 			case 3:
 				//Don't handle non-compliance with spec here
 				//This case is only possible if extended Lc not used
 				//CBA
 				if (bytes[0] != 0)
 					throw runtime_error{ "First byte of 3-byte Le should be 0"};
-				return (bytes[1] == 0 & bytes[2] == 0 ? 65536 : bytes[1] << 8 + bytes[2]);
+				return (bytes[1] == 0 && bytes[2] == 0 ? 65536 : (bytes[1] << 8) + bytes[2]);
+			default:
+				throw runtime_error{ "Too much data for command" };
 		}
 	}
 	else
 		return 0;
 }
 
-shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::get()
+shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 {
-	const auto message = U2FMessage::read();
-	
-	if (message.cmd != U2FHID_MSG)
-		throw runtime_error{ "Failed to get U2F Msg message" };
+	if (uMsg->cmd != U2FHID_MSG)
+		throw runtime_error{ "Failed to get U2F Msg uMsg" };
+	else if (uMsg->data.size() < 4)
+		throw runtime_error{ "Msg data is incorrect size" };
 
-	U2F_Msg_CMD cmd{};
-	auto &dat = message.data;
+	U2F_Msg_CMD cmd;
+	auto &dat = uMsg->data;
 
 	cmd.cla = dat[0];
 	cmd.ins = dat[1];
 	cmd.p1  = dat[2];
 	cmd.p2  = dat[3];
 
-	const uint32_t cBCount = dat.size() - 4;
+	clog << "Loaded U2F_Msg_CMD parameters" << endl;
 
 	vector<uint8_t> data{ dat.begin() + 4, dat.end() };
+	const uint32_t cBCount = data.size();
 	auto startPtr = data.begin(), endPtr = data.end();
+
+	clog << "Loaded iters" << endl;
 
 	if (usesData.at(cmd.ins) || data.size() > 3)
 	{
-		//clog << "First bytes are: " << static_cast<uint16_t>(data[0]) << " " << static_cast<uint16_t>(data[1]) << " " << static_cast<uint16_t>(data[2]) << endl;
-
 		if (cBCount == 0)
 			throw runtime_error{ "Invalid command - should have attached data" };
 
@@ -81,16 +85,21 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::get()
 
 		endPtr = startPtr + cmd.lc;
 
+		clog << "Getting Le" << endl;
 		cmd.le = getLe(data.end() - endPtr, vector<uint8_t>(endPtr, data.end()));
 	}
 	else
 	{
 		cmd.lc = 0;
 		endPtr = startPtr;
+
+		clog << "Getting Le" << endl;
 		cmd.le = getLe(cBCount, data);
 	}
 
 	const auto dBytes = vector<uint8_t>(startPtr, endPtr);
+
+	clog << "Determined message format" << endl;
 
 	auto hAS = getHostAPDUStream().get();
 
@@ -125,6 +134,8 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::get()
 			"\t\t</table>\n"
 			"\t\t<br />", cmd.le);
 
+	clog << "Constructing message specialisation" << endl;
+
 	switch (cmd.ins)
 	{
 		case APDU::U2F_REG:
@@ -138,11 +149,18 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::get()
 	}
 }
 
-void U2F_Msg_CMD::respond(){};
-
 const map<uint8_t, bool> U2F_Msg_CMD::usesData = {
 	{ U2F_REG,  true  },
 	{ U2F_AUTH, true  },
 	{ U2F_VER,  false }
 };
 
+void U2F_Msg_CMD::respond(const uint32_t channelID) const
+{
+	U2FMessage msg{};
+	msg.cid = channelID;
+	msg.cmd = U2FHID_MSG;
+	auto errorCode = APDU_STATUS::SW_INS_NOT_SUPPORTED;
+	msg.data.insert(msg.data.end(), FIELD_BE(errorCode));
+	msg.write();
+}

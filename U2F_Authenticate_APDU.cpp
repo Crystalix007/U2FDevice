@@ -27,10 +27,10 @@ U2F_Authenticate_APDU::U2F_Authenticate_APDU(const U2F_Msg_CMD &msg, const vecto
 	clog << "Got U2F_Auth request" << endl;
 }
 
-void U2F_Authenticate_APDU::respond()
+void U2F_Authenticate_APDU::respond(const uint32_t channelID) const
 {
 	U2FMessage msg{};
-	msg.cid = 0xF1D0F1D0;
+	msg.cid = channelID;
 	msg.cmd = U2FHID_MSG;
 	auto statusCode = APDU_STATUS::SW_NO_ERROR;
 

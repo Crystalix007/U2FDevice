@@ -1,21 +1,29 @@
 #include "Streams.hpp"
 #include <iostream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <cstdio>
+#include <unistd.h>
 
 using namespace std;
 
 FILE* initHTML(FILE *fPtr, const string &title);
 void closeHTML(FILE *fPtr);
 
-shared_ptr<FILE> getHostStream()
+shared_ptr<int> getHostDescriptor()
 {
-	static shared_ptr<FILE> stream{ fopen("/dev/hidg0", "ab+"), [](FILE *f){
-			fclose(f);
-	} };
+	static shared_ptr<int> descriptor{};
+	
+	descriptor.reset(new int{ open("/dev/hidg0", O_RDWR | O_NONBLOCK | O_APPEND) }, [](int* fd){
+			close(*fd);
+			delete fd;
+	});
 
-	if (!stream)
-		clog << "Stream is unavailable" << endl;
+	if (*descriptor == -1)
+		throw runtime_error{ "Descriptor is unavailable" };
 
-	return stream;
+	return descriptor;
 }
 
 shared_ptr<FILE> getComHostStream()

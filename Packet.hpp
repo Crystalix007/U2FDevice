@@ -2,12 +2,13 @@
 #include <cstdint>
 #include <memory>
 #include <array>
-#include "Constants.hpp"
+#include "u2f.hpp"
 
 struct Packet
 {
-	uint32_t            cid;
-	uint8_t buf[packetSize];
+	public:
+		uint32_t cid;
+		uint8_t  buf[HID_RPT_SIZE];
 
 	protected:
 		Packet() = default;
@@ -20,10 +21,11 @@ struct Packet
 
 struct InitPacket : Packet
 {
-	uint8_t                             cmd;
-	uint8_t                             bcnth;
-	uint8_t                             bcntl;
-	std::array<uint8_t, packetSize - 7> data{};
+	public:
+		uint8_t                               cmd;
+		uint8_t                               bcnth;
+		uint8_t                               bcntl;
+		std::array<uint8_t, HID_RPT_SIZE - 7> data{};
 
 	public:
 		InitPacket() = default;
@@ -33,8 +35,9 @@ struct InitPacket : Packet
 
 struct ContPacket : Packet
 {
-	uint8_t                             seq;
-	std::array<uint8_t, packetSize - 5> data{};
+	public:
+		uint8_t                             seq;
+		std::array<uint8_t, HID_RPT_SIZE - 5> data{};
 
 	public:
 		ContPacket() = default;

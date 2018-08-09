@@ -50,10 +50,10 @@ U2F_Register_APDU::U2F_Register_APDU(const U2F_Msg_CMD &msg, const vector<uint8_
 	clog << endl << dec << "Got U2F_Reg request" << endl;
 }
 
-void U2F_Register_APDU::respond()
+void U2F_Register_APDU::respond(const uint32_t channelID) const
 {
 	U2FMessage m{};
-	m.cid = 0xF1D0F1D0;
+	m.cid = channelID;
 	m.cmd = U2FHID_MSG;
 
 	auto& response = m.data;
@@ -65,7 +65,7 @@ void U2F_Register_APDU::respond()
 	copy(pubKey.begin(), pubKey.end(), back_inserter(response));
 	response.push_back(sizeof(this->keyH));
 
-	auto fakeKeyHBytes = reinterpret_cast<uint8_t *>(&this->keyH);
+	auto fakeKeyHBytes = reinterpret_cast<const uint8_t *>(&this->keyH);
 	copy(fakeKeyHBytes, fakeKeyHBytes + sizeof(this->keyH), back_inserter(response));
 
 	copy(attestCert, end(attestCert), back_inserter(response));
@@ -83,9 +83,9 @@ void U2F_Register_APDU::respond()
 
 		mbedtls_sha256_update(&shaContext, reinterpret_cast<const unsigned char*>(appParam.data()), appParam.size());
 
-		mbedtls_sha256_update(&shaContext, reinterpret_cast<unsigned char*>(challengeP.data()), challengeP.size());
+		mbedtls_sha256_update(&shaContext, reinterpret_cast<const unsigned char*>(challengeP.data()), challengeP.size());
 
-		mbedtls_sha256_update(&shaContext, reinterpret_cast<unsigned char*>(&keyH), sizeof(keyH));
+		mbedtls_sha256_update(&shaContext, reinterpret_cast<const unsigned char*>(&keyH), sizeof(keyH));
 
 		mbedtls_sha256_update(&shaContext, reinterpret_cast<const unsigned char*>(pubKey.data()), pubKey.size());
 

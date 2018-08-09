@@ -5,5 +5,5 @@ struct U2F_Version_APDU : U2F_Msg_CMD
 {
 	public:
 		U2F_Version_APDU(const U2F_Msg_CMD &msg);
-		void respond();
+		void respond(const uint32_t channelID) const override;
 };

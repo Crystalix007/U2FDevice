@@ -6,7 +6,7 @@ LDFLAGS  := -lmbedcrypto
 CPPFLAGS :=
 CXXFLAGS := --std=c++14
 
-CXXFLAGS += -MMD -MP
+CXXFLAGS += -MMD -MP -Wall -Wfatal-errors -Wextra
 MODULES  := $(wildcard $(SRC_DIR)/*.cpp)
 OBJECTS  := $(MODULES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 

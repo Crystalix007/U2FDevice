@@ -14,12 +14,12 @@ U2F_Version_APDU::U2F_Version_APDU(const U2F_Msg_CMD &msg)
 	//Don't actually respond yet
 }
 
-void U2F_Version_APDU::respond()
+void U2F_Version_APDU::respond(const uint32_t channelID) const
 {
 	char ver[]{ 'U', '2', 'F', '_', 'V', '2' };
 	U2FMessage m{};
 
-	m.cid = 0xF1D0F1D0;
+	m.cid = channelID;
 	m.cmd = U2FHID_MSG;
 	m.data.insert(m.data.end(), FIELD(ver));
 	auto sC = APDU_STATUS::SW_NO_ERROR;

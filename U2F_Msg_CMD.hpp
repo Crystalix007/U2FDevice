@@ -18,10 +18,10 @@ struct U2F_Msg_CMD : U2F_CMD
 
 	protected:
 		static uint32_t getLe(const uint32_t byteCount, std::vector<uint8_t> bytes);
+		U2F_Msg_CMD() = default;
 
 	public:
-		static std::shared_ptr<U2F_Msg_CMD> get();
-
-		virtual void respond();
+		static std::shared_ptr<U2F_Msg_CMD> generate(const std::shared_ptr<U2FMessage> uMsg);
+		void respond(const uint32_t channelID) const;
 };
 
