@@ -12,5 +12,5 @@ class Controller
 		Controller(const uint32_t startChannel = 1);
 
 		void handleTransaction();
-		const uint32_t nextChannel();
+		uint32_t nextChannel();
 };

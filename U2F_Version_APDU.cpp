@@ -7,12 +7,12 @@
 
 using namespace std;
 
-U2F_Version_APDU::U2F_Version_APDU(const U2F_Msg_CMD &msg)
+U2F_Version_APDU::U2F_Version_APDU(const U2F_Msg_CMD &msg, const std::vector<uint8_t> &data)
 {
 	//Don't actually respond yet unless invalid
 	if (msg.p1 != 0 || msg.p2 != 0)
 		throw APDU_STATUS::SW_COMMAND_NOT_ALLOWED;
-	else if (msg.data.size() != 0)
+	else if (data.size() != 0)
 		throw APDU_STATUS::SW_WRONG_LENGTH;
 }
 

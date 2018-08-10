@@ -15,7 +15,5 @@ struct U2FMessage
 		U2FMessage(const uint32_t nCID, const uint8_t nCMD);
 		static std::shared_ptr<U2FMessage> readNonBlock();
 		void write();
-	
-	protected:
-		static void error(const uint32_t tCID, const uint16_t tErr);
+		static void error(const uint32_t tCID, const uint8_t tErr);
 };

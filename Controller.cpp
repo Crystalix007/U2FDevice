@@ -36,7 +36,7 @@ void Controller::handleTransaction()
 	channels.at(opChannel).handle(msg);
 }
 
-const uint32_t Controller::nextChannel()
+uint32_t Controller::nextChannel()
 {
 	do
 		currChannel++;

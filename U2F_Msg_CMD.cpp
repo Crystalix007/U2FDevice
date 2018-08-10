@@ -162,7 +162,7 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 			case APDU::U2F_AUTH:
 				return make_shared<U2F_Authenticate_APDU>(cmd, dBytes);
 			case APDU::U2F_VER:
-				return make_shared<U2F_Version_APDU>(cmd);
+				return make_shared<U2F_Version_APDU>(cmd, dBytes);
 			default:
 				cerr << "Invalid command used" << endl;
 				throw APDU_STATUS::SW_INS_NOT_SUPPORTED;

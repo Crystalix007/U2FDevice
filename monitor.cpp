@@ -28,7 +28,7 @@ int main()
 	return EXIT_SUCCESS;
 }
 
-void signalCallback(int signum)
+void signalCallback([[maybe_unused]] int signum)
 {
 	contProc = false;
 	clog << "Caught SIGINT signal" << endl;
