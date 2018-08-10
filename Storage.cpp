@@ -50,13 +50,6 @@ void Storage::init(const string &dirPrefix)
 		Storage::PubKey   pubKey{};
 		b64decode(pubStr, pubKey);
 
-		clog << "Loaded key with pubkey: " << hex;
-
-		for (auto b : pubKey)
-			clog << static_cast<uint32_t>(b) << ' ';
-
-		clog << dec << endl;
-
 		Storage::appParams[keyH] = appParam;
 		Storage::privKeys[keyH]  = privKey;
 		Storage::pubKeys[keyH]   = pubKey;

@@ -22,6 +22,7 @@ struct U2F_Msg_CMD : U2F_CMD
 
 	public:
 		static std::shared_ptr<U2F_Msg_CMD> generate(const std::shared_ptr<U2FMessage> uMsg);
+		static void error(const uint32_t channelID, const uint16_t errCode);
 		void respond(const uint32_t channelID) const;
 };
 

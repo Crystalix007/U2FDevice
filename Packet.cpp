@@ -90,7 +90,6 @@ shared_ptr<InitPacket> InitPacket::getPacket(const uint32_t rCID, const uint8_t 
 			"\t\t</table>"
 			"\t\t<br />");
 
-	clog << "Fully read init packet" << endl;
 	bytesRead = 0;
 	return p;
 }
@@ -143,7 +142,6 @@ shared_ptr<ContPacket> ContPacket::getPacket(const uint32_t rCID, const uint8_t 
 			"\t\t</table>\n"
 			"\t\t<br />");
 
-	//clog << "Fully read cont packet" << endl;
 	readBytes = 0;
 	return p;
 }
@@ -183,7 +181,6 @@ shared_ptr<Packet> Packet::getPacket()
 			if (b & TYPE_MASK)
 			{
 				//Init packet
-				//clog << "Getting init packet" << endl;
 				packet = InitPacket::getPacket(cid, b);
 
 				if (packet)
@@ -194,7 +191,6 @@ shared_ptr<Packet> Packet::getPacket()
 			else
 			{
 				//Cont packet
-				//clog << "Getting cont packet" << endl;
 				packet = ContPacket::getPacket(cid, b);
 
 				if (packet)

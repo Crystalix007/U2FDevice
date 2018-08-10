@@ -85,8 +85,6 @@ shared_ptr<U2FMessage> U2FMessage::readNonBlock()
 	message->data.assign(dataBytes.begin(), dataBytes.end());
 	currSeq = -1u;
 
-	std::clog << "Read all of message" << std::endl;
-
 	return message;
 }
 
@@ -127,8 +125,6 @@ void U2FMessage::write()
 		seq++;
 		bytesWritten += newByteCount;
 	}
-
-	//auto stream = *getHostStream();
 
 	if (cmd == U2FHID_MSG)
 	{

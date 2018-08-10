@@ -18,8 +18,6 @@ void Controller::handleTransaction()
 
 	auto opChannel = msg->cid;
 
-	clog << "Got msg with cmd of: " << static_cast<uint16_t>(msg->cmd) << endl;
-
 	if (msg->cmd == U2FHID_INIT)
 	{
 		opChannel = nextChannel();

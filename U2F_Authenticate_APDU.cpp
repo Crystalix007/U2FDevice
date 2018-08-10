@@ -23,8 +23,6 @@ U2F_Authenticate_APDU::U2F_Authenticate_APDU(const U2F_Msg_CMD &msg, const vecto
 	uint8_t keyHLen = data[64];
 
 	copy(data.begin() + 65, data.begin() + 65 + keyHLen, back_inserter(keyH));
-
-	clog << "Got U2F_Auth request" << endl;
 }
 
 void U2F_Authenticate_APDU::respond(const uint32_t channelID) const
@@ -39,7 +37,7 @@ void U2F_Authenticate_APDU::respond(const uint32_t channelID) const
 	if (keyH.size() != sizeof(Storage::KeyHandle))
 	{
 		//Respond with error code - key handle is of wrong size
-		clog << "Invalid key handle length" << endl;
+		cerr << "Invalid key handle length" << endl;
 		statusCode = APDU_STATUS::SW_WRONG_DATA;
 		response.insert(response.end(), FIELD_BE(statusCode));
 		msg.write();
@@ -51,7 +49,7 @@ void U2F_Authenticate_APDU::respond(const uint32_t channelID) const
 	if (Storage::appParams.find(keyHB) == Storage::appParams.end())
 	{
 		//Respond with error code - key handle doesn't exist in storage
-		clog << "Invalid key handle" << endl;
+		cerr << "Invalid key handle" << endl;
 		statusCode = APDU_STATUS::SW_WRONG_DATA;
 		response.insert(response.end(), FIELD_BE(statusCode));
 		msg.write();

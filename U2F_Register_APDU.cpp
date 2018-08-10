@@ -19,8 +19,8 @@ U2F_Register_APDU::U2F_Register_APDU(const U2F_Msg_CMD &msg, const vector<uint8_
 		throw runtime_error{ "Incorrect registration size" };
 	else if (p1 != 0x00 || p2 != 0x00)
 	{
-		cerr << "p1: " << static_cast<uint32_t>(p1) << ", p2: " << static_cast<uint32_t>(p2) << endl;
-		//throw runtime_error{ "Invalid APDU parameters" };
+		cerr << "Ins: " << static_cast<uint32_t>(ins) << ", p1: " << static_cast<uint32_t>(p1) << ", p2: " << static_cast<uint32_t>(p2) << endl;
+		cerr << "Invalid APDU parameters detected" << endl;
 	}
 
 	copy(data.data() + 0,  data.data() + 32, challengeP.begin());
@@ -31,7 +31,6 @@ U2F_Register_APDU::U2F_Register_APDU(const U2F_Msg_CMD &msg, const vector<uint8_
 	Storage::PubKey pubKey{};
 	
 	//Unsure if necessary
-	//From github.com/pratikd650/Teensy_U2F/blob/master/Teensy_U2F.cpp
 	pubKey[0] = 0x04;
 
 	uECC_make_key(pubKey.data() + 1, privKey.data(), uECC_secp256r1());
@@ -41,13 +40,6 @@ U2F_Register_APDU::U2F_Register_APDU(const U2F_Msg_CMD &msg, const vector<uint8_
 	Storage::privKeys[this->keyH]  = privKey;
 	Storage::pubKeys[this->keyH]   = pubKey;
 	Storage::keyCounts[this->keyH] = 0;
-
-	clog << "Produced pub key: " << hex;
-
-	for (auto b : pubKey)
-		clog << static_cast<uint32_t>(b) << ' ';
-
-	clog << endl << dec << "Got U2F_Reg request" << endl;
 }
 
 void U2F_Register_APDU::respond(const uint32_t channelID) const
@@ -59,7 +51,6 @@ void U2F_Register_APDU::respond(const uint32_t channelID) const
 	auto& response = m.data;
 	const auto appParam = Storage::appParams[this->keyH];
 	const auto pubKey   = Storage::pubKeys[this->keyH];
-	const auto privKey  = Storage::privKeys[this->keyH];
 
 	response.push_back(0x05);
 	copy(pubKey.begin(), pubKey.end(), back_inserter(response));
@@ -94,17 +85,13 @@ void U2F_Register_APDU::respond(const uint32_t channelID) const
 	}
 
 	Signature signature;
-	std::clog << "Will sign digest with priv key" << std::endl;
 	uECC_sign(attestPrivKey, digest.data(), digest.size(), signature.data(), uECC_secp256r1());
 
 	//Append signature as DER
-	std::clog << "Will append sig as DER" << std::endl;
 	appendSignatureAsDER(response, signature);
 
 	response.push_back(static_cast<uint16_t>(APDU_STATUS::SW_NO_ERROR) >> 8);
 	response.push_back(static_cast<uint16_t>(APDU_STATUS::SW_NO_ERROR) & 0xff);
-
-	std::clog << "Writing out " << response.size() << " bytes in response" << std::endl;
 
 	m.write();
 }

@@ -17,9 +17,7 @@ uint32_t U2F_Msg_CMD::getLe(const uint32_t byteCount, vector<uint8_t> bytes)
 	if (byteCount != 0)
 	{
 		//Le must be length of data in bytes
-		clog << "Le must be length of data in bytes" << endl;
-		clog << "Le has a size of " << byteCount << " bytes" << endl;
-
+		
 		switch (byteCount)
 		{
 			case 1:
@@ -59,13 +57,9 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 	cmd.p1  = dat[2];
 	cmd.p2  = dat[3];
 
-	clog << "Loaded U2F_Msg_CMD parameters" << endl;
-
 	vector<uint8_t> data{ dat.begin() + 4, dat.end() };
 	const uint32_t cBCount = data.size();
 	auto startPtr = data.begin(), endPtr = data.end();
-
-	clog << "Loaded iters" << endl;
 
 	if (usesData.at(cmd.ins) || data.size() > 3)
 	{
@@ -85,7 +79,6 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 
 		endPtr = startPtr + cmd.lc;
 
-		clog << "Getting Le" << endl;
 		cmd.le = getLe(data.end() - endPtr, vector<uint8_t>(endPtr, data.end()));
 	}
 	else
@@ -93,13 +86,10 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 		cmd.lc = 0;
 		endPtr = startPtr;
 
-		clog << "Getting Le" << endl;
 		cmd.le = getLe(cBCount, data);
 	}
 
 	const auto dBytes = vector<uint8_t>(startPtr, endPtr);
-
-	clog << "Determined message format" << endl;
 
 	auto hAS = getHostAPDUStream().get();
 
@@ -134,8 +124,6 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 			"\t\t</table>\n"
 			"\t\t<br />", cmd.le);
 
-	clog << "Constructing message specialisation" << endl;
-
 	switch (cmd.ins)
 	{
 		case APDU::U2F_REG:
@@ -149,6 +137,15 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 	}
 }
 
+void U2F_Msg_CMD::error(const uint32_t channelID, const uint16_t errCode)
+{
+	U2FMessage msg{};
+	msg.cid = channelID;
+	msg.cmd = U2FHID_MSG;
+	msg.data.insert(msg.data.end(), FIELD_BE(errCode));
+	msg.write();
+}
+
 const map<uint8_t, bool> U2F_Msg_CMD::usesData = {
 	{ U2F_REG,  true  },
 	{ U2F_AUTH, true  },
@@ -157,10 +154,5 @@ const map<uint8_t, bool> U2F_Msg_CMD::usesData = {
 
 void U2F_Msg_CMD::respond(const uint32_t channelID) const
 {
-	U2FMessage msg{};
-	msg.cid = channelID;
-	msg.cmd = U2FHID_MSG;
-	auto errorCode = APDU_STATUS::SW_INS_NOT_SUPPORTED;
-	msg.data.insert(msg.data.end(), FIELD_BE(errorCode));
-	msg.write();
+	U2F_Msg_CMD::error(channelID, static_cast<uint16_t>(APDU_STATUS::SW_INS_NOT_SUPPORTED));
 }

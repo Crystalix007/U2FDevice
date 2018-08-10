@@ -9,8 +9,6 @@ using namespace std;
 
 U2F_Version_APDU::U2F_Version_APDU(const U2F_Msg_CMD &msg)
 {
-	clog << "Got U2F_Ver APDU request" << endl;
-
 	//Don't actually respond yet
 }
 
