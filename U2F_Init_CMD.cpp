@@ -9,8 +9,16 @@ U2F_Init_CMD::U2F_Init_CMD(const shared_ptr<U2FMessage> uMsg)
 {
 	if (uMsg->cmd != U2FHID_INIT)
 		throw runtime_error{ "Failed to get U2F Init message" };
+	else if (uMsg->cid != CID_BROADCAST)
+	{
+		U2FMessage::error(uMsg->cid, ERR_OTHER);
+		throw runtime_error{ "Invalid CID for init command" };
+	}
 	else if (uMsg->data.size() != INIT_NONCE_SIZE)
+	{
+		U2FMessage::error(uMsg->cid, ERR_INVALID_LEN);
 		throw runtime_error{ "Init nonce is incorrect size" };
+	}
 
 	this->nonce = *reinterpret_cast<const uint64_t*>(uMsg->data.data());
 }

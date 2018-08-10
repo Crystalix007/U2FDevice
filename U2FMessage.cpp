@@ -160,11 +160,10 @@ U2FMessage::U2FMessage(const uint32_t nCID, const uint8_t nCMD)
 	: cid{ nCID }, cmd{ nCMD }
 {}
 
-void U2FMessage::error(const uint32_t tCID, const uint16_t tErr)
+void U2FMessage::error(const uint32_t tCID, const uint8_t tErr)
 {
 	U2FMessage msg{};
 	msg.cid = tCID;
 	msg.cmd = U2FHID_ERROR;
-	msg.data.push_back((tErr >> 8) & 0xFF);
-	msg.data.push_back(tErr & 0xFF);
+	msg.data.push_back(tErr);
 }

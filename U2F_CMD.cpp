@@ -7,20 +7,20 @@ using namespace std;
 
 shared_ptr<U2F_CMD> U2F_CMD::get(const shared_ptr<U2FMessage> uMsg)
 {
-	switch (uMsg->cmd)
+	try
 	{
-		case U2FHID_MSG:
-			try
-			{
-				return U2F_Msg_CMD::generate(uMsg);
-			}
-			catch (runtime_error)
-			{
+		switch (uMsg->cmd)
+		{
+			case U2FHID_MSG:
+					return U2F_Msg_CMD::generate(uMsg);
+			case U2FHID_INIT:
+				return make_shared<U2F_Init_CMD>(uMsg);
+			default:
 				return {};
-			}
-		case U2FHID_INIT:
-			return make_shared<U2F_Init_CMD>(uMsg);
-		default:
-			return {};
+		}
+	}
+	catch (runtime_error)
+	{
+		return {};
 	}
 }
