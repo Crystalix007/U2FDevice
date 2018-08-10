@@ -16,11 +16,14 @@ U2F_Register_APDU::U2F_Register_APDU(const U2F_Msg_CMD &msg, const vector<uint8_
 	: U2F_Msg_CMD{ msg }
 {
 	if (data.size() != 64)
-		throw runtime_error{ "Incorrect registration size" };
+	{
+		//Incorrect registration size
+		throw APDU_STATUS::SW_WRONG_LENGTH;
+	}
 	else if (p1 != 0x00 || p2 != 0x00)
 	{
-		cerr << "Ins: " << static_cast<uint32_t>(ins) << ", p1: " << static_cast<uint32_t>(p1) << ", p2: " << static_cast<uint32_t>(p2) << endl;
-		cerr << "Invalid APDU parameters detected" << endl;
+		//Invalid U2F Message (APDU) parameters detected
+		throw APDU_STATUS::SW_COMMAND_NOT_ALLOWED;
 	}
 
 	copy(data.data() + 0,  data.data() + 32, challengeP.begin());
@@ -30,7 +33,7 @@ U2F_Register_APDU::U2F_Register_APDU(const U2F_Msg_CMD &msg, const vector<uint8_
 	Storage::PrivKey privKey{};
 	Storage::PubKey pubKey{};
 	
-	//Unsure if necessary
+	//First byte must be 0x04 for some reason
 	pubKey[0] = 0x04;
 
 	uECC_make_key(pubKey.data() + 1, privKey.data(), uECC_secp256r1());

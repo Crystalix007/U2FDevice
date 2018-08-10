@@ -14,8 +14,16 @@ using namespace std;
 U2F_Authenticate_APDU::U2F_Authenticate_APDU(const U2F_Msg_CMD &msg, const vector<uint8_t> &data)
 	: U2F_Msg_CMD{ msg }
 {
-	if (data.size() < 66)
-		throw runtime_error{ "Invalid authentication request" };
+	if (p2 != 0)
+	{
+		//Invalid U2F (APDU) parameter detected
+		throw APDU_STATUS::SW_COMMAND_NOT_ALLOWED;
+	}
+	else if (data.size() < 66)
+	{
+		//Invalid authentication request
+		throw APDU_STATUS::SW_WRONG_LENGTH;
+	}
 
 	copy(data.begin() + 0,  data.begin() + 32, challengeP.begin());
 	copy(data.begin() + 32, data.begin() + 64, appParam.begin());
@@ -27,20 +35,11 @@ U2F_Authenticate_APDU::U2F_Authenticate_APDU(const U2F_Msg_CMD &msg, const vecto
 
 void U2F_Authenticate_APDU::respond(const uint32_t channelID) const
 {
-	U2FMessage msg{};
-	msg.cid = channelID;
-	msg.cmd = U2FHID_MSG;
-	auto statusCode = APDU_STATUS::SW_NO_ERROR;
-
-	auto &response = msg.data;
-
 	if (keyH.size() != sizeof(Storage::KeyHandle))
 	{
 		//Respond with error code - key handle is of wrong size
 		cerr << "Invalid key handle length" << endl;
-		statusCode = APDU_STATUS::SW_WRONG_DATA;
-		response.insert(response.end(), FIELD_BE(statusCode));
-		msg.write();
+		this->error(channelID, APDU_STATUS::SW_WRONG_DATA);
 		return;
 	}
 
@@ -50,13 +49,18 @@ void U2F_Authenticate_APDU::respond(const uint32_t channelID) const
 	{
 		//Respond with error code - key handle doesn't exist in storage
 		cerr << "Invalid key handle" << endl;
-		statusCode = APDU_STATUS::SW_WRONG_DATA;
-		response.insert(response.end(), FIELD_BE(statusCode));
-		msg.write();
+		this->error(channelID, SW_WRONG_DATA);
 		return;
 	}
 
 	auto appMatches = (Storage::appParams.at(keyHB) == appParam);
+
+	U2FMessage msg{};
+	msg.cid = channelID;
+	msg.cmd = U2FHID_MSG;
+
+	auto &response = msg.data;
+	APDU_STATUS statusCode = APDU_STATUS::SW_NO_ERROR;
 
 	switch (p1)
 	{
@@ -76,10 +80,8 @@ void U2F_Authenticate_APDU::respond(const uint32_t channelID) const
 			break;
 
 		default:
-			cerr << "Unknown APDU command" << endl;
-			statusCode = APDU_STATUS::SW_WRONG_DATA;
-			response.insert(response.end(), FIELD_BE(statusCode));
-			msg.write();
+			cerr << "Unknown APDU authentication command" << endl;
+			this->error(channelID, APDU_STATUS::SW_COMMAND_NOT_ALLOWED);
 			return;
 	}
 
