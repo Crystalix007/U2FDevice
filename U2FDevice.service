@@ -1,0 +1,8 @@
+[Unit]
+Description=An implementation of the U2F device protocol for Raspberry Pi 0
+
+[Service]
+ExecStart=/usr/bin/U2FDevice
+
+[Install]
+WantedBy=multi-user.target

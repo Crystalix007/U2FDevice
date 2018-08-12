@@ -20,10 +20,11 @@ U2F_Register_APDU::U2F_Register_APDU(const U2F_Msg_CMD &msg, const vector<uint8_
 		//Incorrect registration size
 		throw APDU_STATUS::SW_WRONG_LENGTH;
 	}
-	else if (p1 != 0x00 || p2 != 0x00)
+	else if ((p1 != 0x00 && p1 != 0x03) || p2 != 0x00) //According to spec, 0x03 not allowed here
+		//However, browsers seem to do it, so...
 	{
 		//Invalid U2F Message (APDU) parameters detected
-		throw APDU_STATUS::SW_COMMAND_NOT_ALLOWED;
+		throw APDU_STATUS::SW_INS_NOT_SUPPORTED;
 	}
 
 	copy(data.data() + 0,  data.data() + 32, challengeP.begin());

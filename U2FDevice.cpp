@@ -27,7 +27,10 @@ int main(int argc, char **argv)
 	}
 
 	signal(SIGINT, signalCallback);
-	Storage::init();
+
+	string privKeyDir = (argc == 2 ? argv[1] : "/usr/share/U2FDevice/");
+
+	Storage::init(privKeyDir);
 
 	Controller ch{ 0xF1D00000 };
 

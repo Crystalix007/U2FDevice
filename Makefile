@@ -15,6 +15,8 @@ U2FDevice: $(OBJECTS) libuECC.o libcppb64.o
 
 install: U2FDevice
 	install -m775 -t /usr/bin U2FDevice
+	install -m775 -t /etc/systemd/system U2FDevice.service
+	install -d /usr/share/U2FDevice/
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	g++ $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<

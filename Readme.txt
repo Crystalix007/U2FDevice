@@ -18,7 +18,11 @@ sudo make install
 
 To run
 
-U2FDevice
+sudo systemctl start U2FDevice.service
+
+To run automatically at boot
+
+sudo systmectl enable U2FDevice.service
 
 Debug files at
 

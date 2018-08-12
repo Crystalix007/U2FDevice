@@ -27,7 +27,10 @@ void Channel::handle(const shared_ptr<U2FMessage> uMsg)
 	else if (this->lockedState != ChannelLockedState::Unlocked)
 		throw runtime_error{ "Channel in incorrect (locked) state to handle request" };
 
-	return U2F_CMD::get(uMsg)->respond(this->cid);
+	auto cmd = U2F_CMD::get(uMsg);
+
+	if (cmd)
+		return cmd->respond(this->cid);
 }
 
 void Channel::init(const ChannelInitState newInitState)

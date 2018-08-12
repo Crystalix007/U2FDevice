@@ -172,11 +172,13 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 	{
 		U2F_Msg_CMD::error(uMsg->cid, e);
 		throw runtime_error{ "APDU construction error" };
+		return {};
 	}
 }
 
 void U2F_Msg_CMD::error(const uint32_t channelID, const uint16_t errCode)
 {
+	clog << "U2F_Msg_CMD::error " << errCode << endl;
 	U2FMessage msg{};
 	msg.cid = channelID;
 	msg.cmd = U2FHID_MSG;

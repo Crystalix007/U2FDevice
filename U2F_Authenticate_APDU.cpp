@@ -17,7 +17,7 @@ U2F_Authenticate_APDU::U2F_Authenticate_APDU(const U2F_Msg_CMD &msg, const vecto
 	if (p2 != 0)
 	{
 		//Invalid U2F (APDU) parameter detected
-		throw APDU_STATUS::SW_COMMAND_NOT_ALLOWED;
+		throw APDU_STATUS::SW_CONDITIONS_NOT_SATISFIED;
 	}
 	else if (data.size() < 66)
 	{
@@ -81,7 +81,7 @@ void U2F_Authenticate_APDU::respond(const uint32_t channelID) const
 
 		default:
 			cerr << "Unknown APDU authentication command" << endl;
-			this->error(channelID, APDU_STATUS::SW_COMMAND_NOT_ALLOWED);
+			this->error(channelID, APDU_STATUS::SW_INS_NOT_SUPPORTED);
 			return;
 	}
 

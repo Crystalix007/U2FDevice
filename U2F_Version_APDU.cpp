@@ -11,7 +11,7 @@ U2F_Version_APDU::U2F_Version_APDU(const U2F_Msg_CMD &msg, const std::vector<uin
 {
 	//Don't actually respond yet unless invalid
 	if (msg.p1 != 0 || msg.p2 != 0)
-		throw APDU_STATUS::SW_COMMAND_NOT_ALLOWED;
+		throw APDU_STATUS::SW_INS_NOT_SUPPORTED;
 	else if (data.size() != 0)
 		throw APDU_STATUS::SW_WRONG_LENGTH;
 }
