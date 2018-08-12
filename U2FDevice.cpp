@@ -11,7 +11,7 @@ void signalCallback(int signum);
 
 volatile bool contProc = true;
 
-int main()
+int main(int argc, char **argv)
 {
 	try
 	{
@@ -21,6 +21,9 @@ int main()
 	catch (runtime_error &e)
 	{
 		cerr << e.what() << endl;
+
+		if (getuid() != 0)
+			cerr << "Try running as root, using \'sudo " << argv[0] << "\'" << endl;
 	}
 
 	signal(SIGINT, signalCallback);
@@ -30,7 +33,19 @@ int main()
 
 	while (contProc)
 	{
-		ch.handleTransaction();
+		try
+		{
+			ch.handleTransaction();
+		}
+		catch (const runtime_error &e)
+		{
+			cerr << e.what() << endl;
+
+			if (getuid() != 0)
+				cerr << "Try running as root, using \'sudo " << argv[0] << "\'" << endl;
+			raise(SIGINT);
+			return EXIT_FAILURE;
+		}
 		usleep(10000);
 	}
 
@@ -52,5 +67,5 @@ int main()
 void signalCallback([[maybe_unused]] int signum)
 {
 	contProc = false;
-	clog << "\nCaught SIGINT signal" << endl;
+	clog << "\nClosing" << endl;
 }

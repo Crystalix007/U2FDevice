@@ -12,10 +12,15 @@ Controller::Controller(const uint32_t startChannel)
 
 void Controller::handleTransaction()
 {
-	if (channels.size() != 0 && chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - lastMessage) < 5s)
-		toggleACTLED();
-	else
-		enableACTLED(false);
+	try
+	{
+		if (channels.size() != 0 && chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - lastMessage) < 5s)
+			toggleACTLED();
+		else
+			enableACTLED(false);
+		}
+	catch (runtime_error)
+	{}
 
 	auto msg = U2FMessage::readNonBlock();
 
