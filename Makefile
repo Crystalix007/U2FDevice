@@ -10,7 +10,7 @@ CXXFLAGS += -MMD -MP -Wall -Wfatal-errors -Wextra
 MODULES  := $(wildcard $(SRC_DIR)/*.cpp)
 OBJECTS  := $(MODULES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
-monitor: $(OBJECTS) libuECC.o libcppb64.o
+U2FDevice: $(OBJECTS) libuECC.o libcppb64.o
 	g++ $(LDFLAGS) -o $@ $^
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
@@ -20,7 +20,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 clean:
 	rm $(OBJ_DIR)/*
-	rm monitor
+	rm U2FDevice
 
 .PHONY: libuECC.o libcppb64.so clean
 libuECC.o:

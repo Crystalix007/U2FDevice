@@ -3,7 +3,7 @@ comdev.txt
 comhost.txt
 libuECC.o
 libcppb64.o
-monitor
+U2FDevice
 obj/*
 U2F_Priv_Keys.txt
 devAPDU.html
