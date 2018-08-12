@@ -1,12 +1,5 @@
-SOut.txt
-comdev.txt
-comhost.txt
 libuECC.o
 libcppb64.o
 U2FDevice
 obj/*
 U2F_Priv_Keys.txt
-devAPDU.html
-devpackets.html
-hostAPDU.html
-hostpackets.html

@@ -28,7 +28,7 @@ shared_ptr<int> getHostDescriptor()
 
 shared_ptr<FILE> getComHostStream()
 {
-	static shared_ptr<FILE> stream{ fopen("comhost.txt", "wb"), [](FILE *f){
+	static shared_ptr<FILE> stream{ fopen("/tmp/comhost.txt", "wb"), [](FILE *f){
 		clog << "Closing comhost stream" << endl;
 		fclose(f);
 	} };
@@ -41,7 +41,7 @@ shared_ptr<FILE> getComHostStream()
 
 shared_ptr<FILE> getHostPacketStream()
 {
-	static shared_ptr<FILE> stream{ initHTML(fopen("hostpackets.html", "wb"), "Host Packets"), [](FILE *f){
+	static shared_ptr<FILE> stream{ initHTML(fopen("/tmp/hostpackets.html", "wb"), "Host Packets"), [](FILE *f){
 		clog << "Closing hostPackets stream" << endl;
 		closeHTML(f);
 	} };
@@ -54,7 +54,7 @@ shared_ptr<FILE> getHostPacketStream()
 
 shared_ptr<FILE> getHostAPDUStream()
 {
-	static shared_ptr<FILE> stream{ initHTML(fopen("hostAPDU.html", "wb"), "Host APDU"), [](FILE *f){
+	static shared_ptr<FILE> stream{ initHTML(fopen("/tmp/hostAPDU.html", "wb"), "Host APDU"), [](FILE *f){
 		clog << "Closing host APDU stream" << endl;
 		closeHTML(f);
 	} };
@@ -67,7 +67,7 @@ shared_ptr<FILE> getHostAPDUStream()
 
 shared_ptr<FILE> getComDevStream()
 {
-	static shared_ptr<FILE> stream{ fopen("comdev.txt", "wb"), [](FILE *f){
+	static shared_ptr<FILE> stream{ fopen("/tmp/comdev.txt", "wb"), [](FILE *f){
 		clog << "Closing comdev stream" << endl;	
 		fclose(f);
 	} };
@@ -80,7 +80,7 @@ shared_ptr<FILE> getComDevStream()
 
 shared_ptr<FILE> getDevPacketStream()
 {
-	static shared_ptr<FILE> stream{ initHTML(fopen("devpackets.html", "wb"), "Dev Packets"), [](FILE *f){
+	static shared_ptr<FILE> stream{ initHTML(fopen("/tmp/devpackets.html", "wb"), "Dev Packets"), [](FILE *f){
 		clog << "Closing devPackets stream" << endl;
 		closeHTML(f);
 	} };
@@ -93,7 +93,7 @@ shared_ptr<FILE> getDevPacketStream()
 
 shared_ptr<FILE> getDevAPDUStream()
 {
-	static shared_ptr<FILE> stream{ initHTML(fopen("devAPDU.html", "wb"), "Dev APDU"), [](FILE *f){
+	static shared_ptr<FILE> stream{ initHTML(fopen("/tmp/devAPDU.html", "wb"), "Dev APDU"), [](FILE *f){
 		clog << "Closing dev APDU stream" << endl;
 		closeHTML(f);
 	} };
