@@ -12,4 +12,22 @@ To build
 
 make
 
-//Currently no install command is provided
+To install
+
+sudo make install
+
+To run
+
+U2FDevice
+
+Debug files at
+
+Raw communication
+/tmp/comdev.txt
+/tmp/comhost.txt
+
+Packets
+/tmp/devPackets.html
+/tmp/devAPDU.html
+/tmp/hostPackets.html
+/tmp/hostAPDU.html
