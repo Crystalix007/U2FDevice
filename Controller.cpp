@@ -2,6 +2,7 @@
 #include "u2f.hpp"
 #include <iostream>
 #include "IO.hpp"
+#include "LED.hpp"
 
 using namespace std;
 
@@ -11,10 +12,17 @@ Controller::Controller(const uint32_t startChannel)
 
 void Controller::handleTransaction()
 {
+	if (channels.size() != 0 && chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - lastMessage) < 5s)
+		toggleACTLED();
+	else
+		enableACTLED(false);
+
 	auto msg = U2FMessage::readNonBlock();
 
 	if (!msg)
 		return;
+	
+	lastMessage = chrono::system_clock::now();
 
 	auto opChannel = msg->cid;
 

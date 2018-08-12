@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Storage.hpp"
 #include "Controller.hpp"
+#include "LED.hpp"
 #include <signal.h>
 #include <unistd.h>
 
@@ -12,6 +13,16 @@ volatile bool contProc = true;
 
 int main()
 {
+	try
+	{
+		disableACTTrigger(true);
+		enableACTLED(false);
+	}
+	catch (runtime_error &e)
+	{
+		cerr << e.what() << endl;
+	}
+
 	signal(SIGINT, signalCallback);
 	Storage::init();
 
@@ -25,11 +36,21 @@ int main()
 
 	Storage::save();
 
+	try
+	{
+		disableACTTrigger(false);
+		enableACTLED(true);
+	}
+	catch (runtime_error &e)
+	{
+		cerr << e.what() << endl;
+	}
+
 	return EXIT_SUCCESS;
 }
 
 void signalCallback([[maybe_unused]] int signum)
 {
 	contProc = false;
-	clog << "Caught SIGINT signal" << endl;
+	clog << "\nCaught SIGINT signal" << endl;
 }
