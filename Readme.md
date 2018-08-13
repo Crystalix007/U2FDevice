@@ -1,6 +1,6 @@
 # U2FDevice
 
-[TOC]
+This program uses a Raspberry Pi 0 to act as a [U2F token](https://www.yubico.com/solutions/fido-u2f/). This permits any person with a Raspberry Pi 0 to try out U2F 2FA for themselves.
 
 # Required materials
 
