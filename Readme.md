@@ -10,7 +10,7 @@
 
 ![Computer](https://upload.wikimedia.org/wikipedia/commons/f/fa/BackSlash_Linux_Olaf_Laptop_Dekstop.png "Preferably Linux computer")
 
-![Confirmed-working micro USB data cable](Readme Assets/Micro USB Cable.png "Micro USB Data Cable")
+![Confirmed-working micro USB data cable](Readme_Assets/Micro_USB_Cable.png "Micro USB Data Cable")
 
 # OS Install
 
@@ -26,22 +26,22 @@ Once you have the `*.img` file, you must write it to an SD card. <br />For this,
 
 After the image burning has completed, most OSs should automatically mount the SD card. We only need access to the `boot` partition initially.
 
-![Storage Monitor](Readme Assets/Storage.png)
+![Storage Monitor](Readme_Assets/Storage.png)
 
 ## Setting up SSH
 
 Since this device can be set up without a monitor, we shall. <br />First, we need to enable SSH.
-1. Open the boot partition - it should look like so: <br />![Boot Partition](Readme Assets/Boot partition.png)
+1. Open the boot partition - it should look like so: <br />![Boot Partition](Readme_Assets/Boot_partition.png)
 
-2. Create a `ssh` file. Note that this doesn't have any extension. For Linux users, you can open a console in this directory, and `touch ssh` to create the file. This file enables `ssh` on the latest versions of Raspbian. <br />![ssh file](Readme Assets/Create ssh.png)
+2. Create a `ssh` file. Note that this doesn't have any extension. For Linux users, you can open a console in this directory, and `touch ssh` to create the file. This file enables `ssh` on the latest versions of Raspbian. <br />![ssh file](Readme Assets/Create_ssh.png)
 
-3. Edit `config.txt`. Using your preferred editor, add the line `dtoverlay=dwc2` to the end. <br />![Edited config.txt](Readme Assets/Edit config_txt.png)
+3. Edit `config.txt`. Using your preferred editor, add the line `dtoverlay=dwc2` to the end. <br />![Edited config.txt](Readme_Assets/Edit_config_txt.png)
 
-4. Edit `cmdline.txt`. Again, using your preferred editor, between `rootwait` and the next word, insert `modules-load=dwc2,g_ether` leaving only one space after `rootwait` and one before the next word. <br />![Edited cmdline.txt](Readme Assets/Edit cmdline_txt.png)
+4. Edit `cmdline.txt`. Again, using your preferred editor, between `rootwait` and the next word, insert `modules-load=dwc2,g_ether` leaving only one space after `rootwait` and one before the next word. <br />![Edited cmdline.txt](Readme_Assets/Edit_cmdline_txt.png)
 
-5. Eject the SD card safely. <br />![Eject SD card](Readme Assets/Eject SD.png)
+5. Eject the SD card safely. <br />![Eject SD card](Readme_Assets/Eject_SD.png)
 
-6. Insert the SD card into the Raspberry Pi. <br />![Inserted SD card](Readme Assets/Insert SD.png)
+6. Insert the SD card into the Raspberry Pi. <br />![Inserted SD card](Readme_Assets/Insert_SD.png)
 
 7. Use a known USB micro data cable to connect the Raspberry Pi to a computer.
 
@@ -55,17 +55,17 @@ Since this device can be set up without a monitor, we shall. <br />First, we nee
 
      * Use your preferred network manager:
 
-     * Create a new connection profile <br />![Creating connection profile](Readme Assets/Add connection.png)
+     * Create a new connection profile <br />![Creating connection profile](Readme_Assets/Add_connection.png)
 
      * Set it's type to be 'Wired Ethernet (shared)' if available, else, 'Wired Ethernet'
 
-     * Name it <br />![Naming new connection](Readme Assets/Configure Connection Name.png)
+     * Name it <br />![Naming new connection](Readme_Assets/Configure_Connection_Name.png)
 
-     * Ensure the method is set to 'Shared to other computers', or similar. <br />![Sharing connection to other computers](Readme Assets/Configure Connection Method.png)
+     * Ensure the method is set to 'Shared to other computers', or similar. <br />![Sharing connection to other computers](Readme_Assets/Configure_Connection_Method.png)
 
-     * Save and connect on the connection not currently used. <br />![Connecting to new connection](Readme Assets/Connect to connection.png)
+     * Save and connect on the connection not currently used. <br />![Connecting to new connection](Readme_Assets/Connect_to_connection.png)
 
-     * Check your IP address on this network. <br />![Checking IP address](Readme Assets/Checking IP Address.png)
+     * Check your IP address on this network. <br />![Checking IP address](Readme_Assets/Checking_IP_Address.png)
 
        * This shows that the host computer (Linux) has the IP address `10.42.0.1`
 
@@ -75,7 +75,7 @@ Since this device can be set up without a monitor, we shall. <br />First, we nee
 
          `nmap -sn "10.42.0.*"` and look for the IP address which the host doesn't have (i.e. look for the ip address other than 10.42.0.1 in this example).
 
-         For example, when I ran the command, the output was <br />![10.42.0.172](Readme Assets/Nmap IP scan.png)
+         For example, when I ran the command, the output was <br />![10.42.0.172](Readme_Assets/Nmap_IP_scan.png)
 
          so the IP address I am looking for is `10.42.0.172`.
 
@@ -94,7 +94,7 @@ Since this device can be set up without a monitor, we shall. <br />First, we nee
 
     * For users of windows, see [ssh using PUTTY](https://desertbot.io/blog/headless-pi-zero-ssh-access-over-usb-windows#step-8-install-putty), and for users of OS X, you can simply ssh in using `ssh pi@raspberrypi.local` in a terminal.
 
-  * This should then ask you if you want to continue connecting, displaying the ECDSA key.  Type `yes` and hit enter to continue.<br />![Continue connecting](Readme Assets/SSH connecting ECDSA.png)
+  * This should then ask you if you want to continue connecting, displaying the ECDSA key.  Type `yes` and hit enter to continue.<br />![Continue connecting](Readme_Assets/SSH_connecting_ECDSA.png)
 
   * Then, when the password is asked for, type `raspberry` - the default password in Raspbian.
 
