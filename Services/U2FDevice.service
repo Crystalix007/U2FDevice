@@ -1,5 +1,7 @@
 [Unit]
 Description=An implementation of the U2F device protocol for Raspberry Pi 0
+Requires=rc-local.service
+After=rc-local.service
 
 [Service]
 ExecStart=/usr/bin/U2FDevice
