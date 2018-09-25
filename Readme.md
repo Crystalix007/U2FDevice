@@ -33,7 +33,7 @@ After the image burning has completed, most OSs should automatically mount the S
 Since this device can be set up without a monitor, we shall. <br />First, we need to enable SSH.
 1. Open the boot partition - it should look like so: <br />![Boot Partition](Readme_Assets/Boot_partition.png)
 
-2. Create a `ssh` file. Note that this doesn't have any extension. For Linux users, you can open a console in this directory, and `touch ssh` to create the file. This file enables `ssh` on the latest versions of Raspbian. <br />![ssh file](Readme Assets/Create_ssh.png)
+2. Create a `ssh` file. Note that this doesn't have any extension. For Linux users, you can open a console in this directory, and `touch ssh` to create the file. This file enables `ssh` on the latest versions of Raspbian. <br />![ssh file](Readme_Assets/Create_ssh.png)
 
 3. Edit `config.txt`. Using your preferred editor, add the line `dtoverlay=dwc2` to the end. <br />![Edited config.txt](Readme_Assets/Edit_config_txt.png)
 
@@ -196,7 +196,7 @@ LABEL="u2f_end"
 Basically, this file contains the same contents as [Yubico's udev rules](https://github.com/Yubico/libu2f-host/blob/master/70-u2f.rules). <br />
 If you don't have any rules, download the [raw file](https://raw.githubusercontent.com/Yubico/libu2f-host/master/70-u2f.rules), and copy it to the `/etc/udev/rules.d/` directory. <br />
 Then, add: <br />
-```# Rapsberry Pi U2F```<br /> ```KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1d6b", ATTRS{idProduct}=="0400", TAG+="uaccess"``` <br />
+```# Rapsberry Pi U2F```<br /> ```KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="2900", TAG+="uaccess"``` <br />
 on lines just before `LABEL="u2f_end"`.
 
 Then, reload the rules using `sudo udevadm control --reload-rules `

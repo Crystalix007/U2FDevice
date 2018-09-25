@@ -15,10 +15,10 @@ cd /sys/kernel/config/usb_gadget/hidraw
 echo 0x0100 > bcdDevice       # Version 1.0.0
 echo 0x0200 > bcdUSB          # USB 2.0
 
-# For this part, used the Linux idVendor
-# Of course, no official spec for Raspberry Pi 0 acting as U2F device, so self defined product here we go
-echo 0x1d6b > idVendor        # Linux Foundation
-echo 0x0400 > idProduct       # Self defined U2F device
+# For this part, used the pid.codes idVendor
+# This permits me to have a application-unique VID and PID
+echo 0x1209 > idVendor        # Linux Foundation
+echo 0x2900 > idProduct       # Self defined U2F device
 
 echo 0x0000 > bDeviceClass    # RAW HID?
 echo 0x0000 > bDeviceSubClass # 
