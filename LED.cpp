@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "LED.hpp"
+#include "Architecture.hpp"
 #include <fstream>
 #include <stdexcept>
 #include <string>
@@ -36,6 +37,7 @@ bool getLEDState()
 
 void disableACTTrigger(bool nowDisabled)
 {
+#if ARCHITECTURE == RASPBERRY_PI
 	ofstream trigFile{ "/sys/class/leds/led0/trigger", ofstream::out | ofstream::trunc };
 
 	if (!trigFile)
@@ -43,10 +45,12 @@ void disableACTTrigger(bool nowDisabled)
 
 	if (!static_cast<bool>(trigFile << (nowDisabled ? "none" : "mmc0")))
 		throw runtime_error{ "Failed to write led0 trigger to file" };
+#endif
 }
 
 void enableACTLED(bool nowOn)
 {
+#if ARCHITECTURE == RASPBERRY_PI
 	if (nowOn == getLEDState())
 		return;
 
@@ -59,6 +63,7 @@ void enableACTLED(bool nowOn)
 		throw runtime_error{ "Failed to write led0 brightness to file" };
 
 	ledState() = nowOn;
+#endif
 }
 
 void toggleACTLED()

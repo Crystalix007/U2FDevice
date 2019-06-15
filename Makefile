@@ -18,8 +18,11 @@ install: U2FDevice
 	install -m775 -t /etc/systemd/system Services/U2FDevice.service
 	install -d /usr/share/U2FDevice/
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(OBJ_DIR)
 	g++ $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+$(OBJ_DIR):
+	mkdir $(OBJ_DIR)
 
 -include $(OBJECTS:.o=.d)
 
@@ -27,7 +30,7 @@ clean:
 	rm $(OBJ_DIR)/*
 	rm U2FDevice
 
-.PHONY: libuECC.o libcppb64.so clean install
+.PHONY: libuECC.o libcppb64.o clean install
 libuECC.o:
 	$(MAKE) -C micro-ecc
 	cp micro-ecc/libuECC.o libuECC.o

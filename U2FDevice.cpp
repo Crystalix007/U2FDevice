@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "Architecture.hpp"
 #include <iostream>
 #include "Storage.hpp"
 #include "Controller.hpp"
@@ -46,7 +47,7 @@ int main(int argc, char **argv)
 
 	signal(SIGINT, signalCallback);
 
-	string privKeyDir = (argc == 2 ? argv[1] : "/usr/share/U2FDevice/");
+	string privKeyDir = (argc == 2 ? argv[1] : STORAGE_PREFIX);
 
 	Storage::init(privKeyDir);
 

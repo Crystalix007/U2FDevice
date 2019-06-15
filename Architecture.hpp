@@ -17,17 +17,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #pragma once
-#include <cstdio>
-#include <memory>
-#include "Architecture.hpp"
 
-std::shared_ptr<int>  getHostDescriptor();
+#define ARCHITECTURE ANDROID
 
-#ifdef DEBUG_STREAMS
-std::shared_ptr<FILE> getComHostStream();
-std::shared_ptr<FILE> getHostPacketStream();
-std::shared_ptr<FILE> getHostAPDUStream();
-std::shared_ptr<FILE> getComDevStream();
-std::shared_ptr<FILE> getDevPacketStream();
-std::shared_ptr<FILE> getDevAPDUStream();
+#if ARCHITECTURE == RASPBERRY_PI
+	#define STORAGE_PREFIX "/usr/share/"
+	#define HID_DEV "/dev/hidg0"
+	#define DEBUG_STREAMS
+#elif ARCHITECTURE == ANDROID
+	#define STORAGE_PREFIX "/sdcard/U2F"
+	#define HID_DEV "/dev/hidg2"
 #endif

@@ -26,14 +26,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using namespace std;
 
+#ifdef DEBUG_STREAMS
 FILE* initHTML(FILE *fPtr, const string &title);
 void closeHTML(FILE *fPtr);
+#endif
 
 shared_ptr<int> getHostDescriptor()
 {
 	static shared_ptr<int> descriptor{};
 	
-	descriptor.reset(new int{ open("/dev/hidg0", O_RDWR | O_NONBLOCK | O_APPEND) }, [](int* fd){
+	descriptor.reset(new int{ open(HID_DEV, O_RDWR | O_NONBLOCK | O_APPEND) }, [](int* fd){
 			close(*fd);
 			delete fd;
 	});
@@ -122,6 +124,7 @@ shared_ptr<FILE> getDevAPDUStream()
 	return stream;
 }
 
+#ifdef DEBUG_STREAMS
 FILE* initHTML(FILE *fPtr, const string &title)
 {
 	fprintf(fPtr, "<html>\n"
@@ -172,3 +175,4 @@ void closeHTML(FILE *fPtr)
 				"</html>");
 	fclose(fPtr);
 }
+#endif
