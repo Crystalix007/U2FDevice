@@ -11,10 +11,10 @@ MODULESC := $(SRC_DIR)/base64.cpp
 OBJECTS := $(MODULESC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 libcppb64.o: $(OBJECTS)
-	ld $(LDFLAGS) -o $@ $^
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 $(OBJECTS): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)
-	@g++ $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 -include $(OBJECTS:.o=.d)

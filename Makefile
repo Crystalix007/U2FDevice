@@ -11,15 +11,15 @@ MODULES  := $(wildcard $(SRC_DIR)/*.cpp)
 OBJECTS  := $(MODULES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 U2FDevice: $(OBJECTS) libuECC.o libcppb64.o
-	g++ $(LDFLAGS) -o $@ $^
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 install: U2FDevice
 	install -m775 -t /usr/bin U2FDevice
 	install -m775 -t /etc/systemd/system Services/U2FDevice.service
 	install -d /usr/share/U2FDevice/
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(OBJ_DIR)
-	g++ $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJ_DIR):
 	mkdir $(OBJ_DIR)
@@ -28,9 +28,10 @@ $(OBJ_DIR):
 
 clean:
 	rm $(OBJ_DIR)/*
-	rm U2FDevice
+	rm U2FDevice libuECC.o libcppb64.o
 
-.PHONY: libuECC.o libcppb64.o clean install
+.PHONY: clean install
+
 libuECC.o:
 	$(MAKE) -C micro-ecc
 	cp micro-ecc/libuECC.o libuECC.o

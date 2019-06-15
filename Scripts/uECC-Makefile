@@ -14,14 +14,14 @@ OBJECTSI := $(MODULESI:$(SRC_DIR)/%.inc=$(OBJ_DIR)/%.o)
 OBJECTS  := $(OBJECTSC) $(OBJECTSI)
 
 libuECC.o: $(OBJECTS)
-	ld $(LDFLAGS) -o $@ $^
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 $(OBJECTSC): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(@D)
-	@g++ $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJECTSI): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.inc
 	@mkdir -p $(@D)
-	@g++ -x c $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+	@$(CXX) -x c $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 -include $(OBJECTS:.o=.d)
