@@ -30,8 +30,7 @@ void signalCallback(int signum);
 
 volatile bool contProc = true;
 
-int main(int argc, char **argv)
-{
+bool initialiseLights(const string& prog) {
 	try
 	{
 		disableACTTrigger(true);
@@ -42,15 +41,18 @@ int main(int argc, char **argv)
 		cerr << e.what() << endl;
 
 		if (getuid() != 0)
-			cerr << "Try running as root, using \'sudo " << argv[0] << "\'" << endl;
+			cerr << "Try running as root, using \'sudo " << prog << "\'" << endl;
+
+		return false;
 	}
 
+	return true;
+}
+
+int handleTransactions(const string& prog, const string& privKeyDir)
+{
 	signal(SIGINT, signalCallback);
-
-	string privKeyDir = (argc == 2 ? argv[1] : STORAGE_PREFIX);
-
 	Storage::init(privKeyDir);
-
 	Controller ch{ 0xF1D00000 };
 
 	while (contProc)
@@ -64,7 +66,8 @@ int main(int argc, char **argv)
 			cerr << e.what() << endl;
 
 			if (getuid() != 0)
-				cerr << "Try running as root, using \'sudo " << argv[0] << "\'" << endl;
+				cerr << "Try running as root, using \'sudo " << prog << "\'" << endl;
+
 			raise(SIGINT);
 			return EXIT_FAILURE;
 		}
@@ -72,7 +75,10 @@ int main(int argc, char **argv)
 	}
 
 	Storage::save();
+	return EXIT_SUCCESS;
+}
 
+bool deinitialiseLights(const string& prog) {
 	try
 	{
 		disableACTTrigger(false);
@@ -81,9 +87,14 @@ int main(int argc, char **argv)
 	catch (runtime_error &e)
 	{
 		cerr << e.what() << endl;
+
+		if (getuid() != 0)
+			cerr << "Try running as root, using \'sudo " << prog << "\'" << endl;
+
+		return false;
 	}
 
-	return EXIT_SUCCESS;
+	return true;
 }
 
 void signalCallback([[maybe_unused]] int signum)
