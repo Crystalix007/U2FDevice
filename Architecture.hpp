@@ -18,13 +18,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #pragma once
 
-#define ARCHITECTURE RASPBERRY_PI`
+#define ARCH_RASPBERRY_PI 1
+#define ARCH_ANDROID 2
+#define ARCHITECTURE ARCH_RASPBERRY_PI
 
-#if ARCHITECTURE == RASPBERRY_PI
+#if ARCHITECTURE == ARCH_RASPBERRY_PI
 	#define STORAGE_PREFIX "/usr/share/"
 	#define HID_DEV "/dev/hidg0"
 	#define DEBUG_STREAMS
-#elif ARCHITECTURE == ANDROID
+#elif ARCHITECTURE == ARCH_ANDROID
 	#define STORAGE_PREFIX "/sdcard/U2F"
 	#define HID_DEV "/dev/hidg2"
 #endif
+
+#undef ARCH_ANDROID
+#undef ARCH_RASPBERRY_PI
+#undef ARCHITECTURE
