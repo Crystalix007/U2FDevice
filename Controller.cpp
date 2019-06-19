@@ -37,7 +37,7 @@ void Controller::handleTransaction()
 		else
 			enableACTLED(false);
 		}
-	catch (runtime_error)
+	catch (runtime_error& ignored)
 	{}
 
 	auto msg = U2FMessage::readNonBlock();

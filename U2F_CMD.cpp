@@ -40,7 +40,7 @@ shared_ptr<U2F_CMD> U2F_CMD::get(const shared_ptr<U2FMessage> uMsg)
 				return {};
 		}
 	}
-	catch (runtime_error)
+	catch (runtime_error& ignored)
 	{
 		return {};
 	}

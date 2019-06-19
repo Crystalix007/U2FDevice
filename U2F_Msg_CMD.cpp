@@ -114,7 +114,7 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 		{
 			cmd.le = getLe(data.end() - endPtr, vector<uint8_t>(endPtr, data.end()));
 		}
-		catch (runtime_error)
+		catch (runtime_error& ignored)
 		{
 			U2F_Msg_CMD::error(uMsg->cid, APDU_STATUS::SW_WRONG_LENGTH);
 			throw;
@@ -129,7 +129,7 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 		{
 			cmd.le = getLe(cBCount, data);
 		}
-		catch (runtime_error)
+		catch (runtime_error& ignored)
 		{
 			U2F_Msg_CMD::error(uMsg->cid, APDU_STATUS::SW_WRONG_LENGTH);
 			throw;
