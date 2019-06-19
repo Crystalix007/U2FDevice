@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #pragma once
 
-#define ARCHITECTURE ANDROID
+#define ARCHITECTURE RASPBERRY_PI`
 
 #if ARCHITECTURE == RASPBERRY_PI
 	#define STORAGE_PREFIX "/usr/share/"
