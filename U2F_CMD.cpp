@@ -33,15 +33,17 @@ shared_ptr<U2F_CMD> U2F_CMD::get(const shared_ptr<U2FMessage> uMsg)
 			case U2FHID_PING:
 				return make_shared<U2F_Ping_CMD>(uMsg);
 			case U2FHID_MSG:
-					return U2F_Msg_CMD::generate(uMsg);
+				return U2F_Msg_CMD::generate(uMsg);
 			case U2FHID_INIT:
 				return make_shared<U2F_Init_CMD>(uMsg);
 			default:
+				U2FMessage::error(uMsg->cid, ERR_INVALID_CMD);
 				return {};
 		}
 	}
 	catch (runtime_error& ignored)
 	{
+		U2FMessage::error(uMsg->cid, ERR_OTHER);
 		return {};
 	}
 }

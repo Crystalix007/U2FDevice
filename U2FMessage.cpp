@@ -184,4 +184,5 @@ void U2FMessage::error(const uint32_t tCID, const uint8_t tErr)
 	msg.cid = tCID;
 	msg.cmd = U2FHID_ERROR;
 	msg.data.push_back(tErr);
+	msg.write();
 }
