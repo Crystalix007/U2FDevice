@@ -10,7 +10,7 @@ CXXFLAGS += -MMD -MP -Wall -Wfatal-errors -Wextra
 MODULES  := $(wildcard $(SRC_DIR)/*.cpp)
 OBJECTS  := $(MODULES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
-U2FDevice: $(OBJECTS) libuECC.o libcppb64.o
+U2FDevice: $(OBJECTS) libuECC.a libcppb64.a
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 install: U2FDevice
@@ -28,14 +28,14 @@ $(OBJ_DIR):
 
 clean:
 	rm $(OBJ_DIR)/*
-	rm U2FDevice libuECC.o libcppb64.o
+	rm U2FDevice libuECC.a libcppb64.a
 
 .PHONY: clean install
 
-libuECC.o:
+libuECC.a:
 	$(MAKE) -C micro-ecc
-	cp micro-ecc/libuECC.o libuECC.o
+	cp micro-ecc/libuECC.a libuECC.a
 
-libcppb64.o:
+libcppb64.a:
 	$(MAKE) -C cpp-base64
-	cp cpp-base64/libcppb64.o libcppb64.o
+	cp cpp-base64/libcppb64.a libcppb64.a

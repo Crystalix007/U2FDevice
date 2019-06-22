@@ -2,7 +2,6 @@
 
 SRC_DIR  := .
 OBJ_DIR  := .
-LDFLAGS  := -r
 CPPFLAGS :=
 CXXFLAGS := --std=c++14
 
@@ -10,8 +9,8 @@ CXXFLAGS += -MMD -MP
 MODULESC := $(SRC_DIR)/base64.cpp
 OBJECTS := $(MODULESC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
-libcppb64.o: $(OBJECTS)
-	$(CXX) $(LDFLAGS) -o $@ $^
+libcppb64.a: $(OBJECTS)
+	ar rcs $@ $^
 
 $(OBJECTS): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)
