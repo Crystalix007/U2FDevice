@@ -253,7 +253,7 @@ See the `Readme.AttestationCertificateGeneration.txt`
 
 Run `sudo systemctl start U2FDevice.service`
 
-At this point, the program should be tested using U2F demo websites. For example, [Yubico's U2F demo](https://demo.yubico.com/u2f?tab=register), or (appspot's U2F demo)[https://crxjs-dot-u2fdemo.appspot.com/]. First register the device, then test authentication.
+At this point, the program should be tested using U2F demo websites. For example, [Yubico's U2F demo](https://demo.yubico.com/u2f?tab=register), or [appspot's U2F demo](https://crxjs-dot-u2fdemo.appspot.com/). First register the device, then test authentication.
 
 If the program doesn't work on these - don't use as a backup device.
 
