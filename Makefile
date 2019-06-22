@@ -3,7 +3,6 @@
 SRC_DIR  := .
 OBJ_DIR  := obj
 LDFLAGS  := -lmbedcrypto
-CPPFLAGS :=
 CXXFLAGS := --std=c++14
 
 CXXFLAGS += -MMD -MP -Wall -Wfatal-errors -Wextra
@@ -29,6 +28,8 @@ $(OBJ_DIR):
 clean:
 	rm $(OBJ_DIR)/*
 	rm U2FDevice libuECC.a libcppb64.a
+	$(MAKE) -C micro-ecc clean
+	$(MAKE) -C cpp-base64 clean
 
 .PHONY: clean install
 

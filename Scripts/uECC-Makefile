@@ -22,4 +22,10 @@ $(OBJECTSI): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.inc
 	@mkdir -p $(@D)
 	@$(CC) -x c $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 
+clean:
+	rm obj/*
+	rm libuECC.a
+
+.PHONY: clean
+
 -include $(OBJECTS:.o=.d)

@@ -16,4 +16,8 @@ $(OBJECTS): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
+clean:
+	rm obj/*
+	rm libcppb64.a
+
 -include $(OBJECTS:.o=.d)
