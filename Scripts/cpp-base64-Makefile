@@ -1,11 +1,9 @@
 #!/usr/bin/env make
 
 SRC_DIR  := .
-OBJ_DIR  := .
-CPPFLAGS :=
-CXXFLAGS := --std=c++14
+OBJ_DIR  := obj
+CXXFLAGS := --std=c++11 -fPIE -MMD -MP $(CROSS_CFLAGS)
 
-CXXFLAGS += -MMD -MP
 MODULESC := $(SRC_DIR)/base64.cpp
 OBJECTS := $(MODULESC:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
@@ -14,10 +12,10 @@ libcppb64.a: $(OBJECTS)
 
 $(OBJECTS): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)
-	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+	@$(CXX) $(STATIC) $(CXXFLAGS) -c -o $@ $<
 
 clean:
-	rm obj/*
-	rm libcppb64.a
+	rm -f obj/*
+	rm -f libcppb64.a
 
 -include $(OBJECTS:.o=.d)

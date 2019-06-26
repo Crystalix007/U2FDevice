@@ -2,9 +2,8 @@
 
 SRC_DIR  := .
 OBJ_DIR  := obj
-CPPFLAGS :=
 
-CFLAGS   := -MMD -MP
+CFLAGS   := -MMD -MP -fPIE $(CROSS_CFLAGS)
 MODULESC := $(wildcard $(SRC_DIR)/*.c)
 MODULESI := $(SRC_DIR)/curve-specific.inc
 OBJECTSC := $(MODULESC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
@@ -16,15 +15,15 @@ libuECC.a: $(OBJECTS)
 
 $(OBJECTSC): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(@D)
-	@$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+	@$(CC) $(STATIC) $(CFLAGS) -c -o $@ $<
 
 $(OBJECTSI): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.inc
 	@mkdir -p $(@D)
-	@$(CC) -x c $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
+	@$(CC) -x c $(STATIC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm obj/*
-	rm libuECC.a
+	rm -f obj/*
+	rm -f libuECC.a
 
 .PHONY: clean
 

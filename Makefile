@@ -2,15 +2,29 @@
 
 SRC_DIR  := .
 OBJ_DIR  := obj
-LDFLAGS  := -lmbedcrypto
-CXXFLAGS := --std=c++14
+CXXFLAGS := -std=c++11 -MMD -MP -Wall -Wfatal-errors -Wextra -fPIE
+LDFLAGS  := -fPIE
 
-CXXFLAGS += -MMD -MP -Wall -Wfatal-errors -Wextra
-MODULES  := $(wildcard $(SRC_DIR)/*.cpp)
-OBJECTS  := $(MODULES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
+ifdef CROSS_COMPILE
+$(info Doing a cross-compilation)
+STATIC := -static
+CXX := $(CROSS_COMPILE)g++
+CC := $(CROSS_COMPILE)gcc
+LDFLAGS += -L /opt/lib
+CROSS_CFLAGS := -I /opt/include
+CXXFLAGS += $(CROSS_CFLAGS)
+export CROSS_CFLAGS
+export CXX
+export CC
+export STATIC
+endif
+
+override LDFLAGS += -lmbedcrypto
+MODULES := $(wildcard $(SRC_DIR)/*.cpp)
+OBJECTS := $(MODULES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
 U2FDevice: $(OBJECTS) libuECC.a libcppb64.a
-	$(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) -o $@ $^ $(LDFLAGS) $(STATIC)
 
 install: U2FDevice
 	install -m775 -t /usr/bin U2FDevice
@@ -18,7 +32,7 @@ install: U2FDevice
 	install -d /usr/share/U2FDevice/
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(STATIC) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJ_DIR):
 	mkdir $(OBJ_DIR)
@@ -26,8 +40,8 @@ $(OBJ_DIR):
 -include $(OBJECTS:.o=.d)
 
 clean:
-	rm $(OBJ_DIR)/*
-	rm U2FDevice libuECC.a libcppb64.a
+	rm -f $(OBJ_DIR)/*
+	rm -f U2FDevice libuECC.a libcppb64.a
 	$(MAKE) -C micro-ecc clean
 	$(MAKE) -C cpp-base64 clean
 
