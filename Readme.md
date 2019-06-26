@@ -1,6 +1,6 @@
 # U2FDevice
 
-For the Android version of this, please see [the android branch](/Crystalix007/U2FDevice/tree/android), as there is a completely different build procedure and resources.
+For the Android version of this, please see [the android branch](../../tree/android), as there is a completely different build procedure and resources.
 
 This program uses a Raspberry Pi 0 to act as a [U2F token](https://www.yubico.com/solutions/fido-u2f/). This permits any person with a Raspberry Pi 0 to try out U2F 2FA for themselves.
 
