@@ -341,6 +341,23 @@ Run `make CROSS_COMPILE=<cross-compiler-prefix>`, using the cross-compiler-prefi
 
 # Warnings
 
+## Logical issues
+
+This project requests a 512-byte USB HID packet size. This contravenes the specification,
+which states that 64 bytes should be used instead. This was chosen as, at least on the test
+hardware, it was found that perfect multiples of the packet size caused packets to be
+cached, and the device unable to read them, until four times the packet size was sent.
+
+As a result, by maximising the packet size, unless a message of 512, 1024, 1536, ...
+bytes needs to be sent, this caching issue will not arise. This obviously has a reduced
+probability of occurring than with a 64-byte packet size. Additionally, 512 bytes is the
+maximum limit of packet size on USB Version 2.0. Therefore, it cannot be made any larger.
+
+If this issue does not arise with your hardware (i.e., you change `.report_length = 512`
+in `drivers/usb/gadget/f_hid_android_u2f.c` to `.report_length = 64`, and U2F still works
+after you reinstall the kernel), this is probably even better, and more compatible with
+client U2F libraries.
+
 ## Security issues
 
 This project is intended solely for the use in experimentation of the use of
@@ -373,10 +390,6 @@ to have a secure attestation certificate, so still worth it.
 See the [`Readme.AttestationCertificateGeneration.txt`](Readme.AttestationCertificateGeneration.txt)
 
 # Running the program
-
-## To run
-
-Run `sudo systemctl start U2FDevice.service`
 
 At this point, the program should be tested using U2F demo websites. For
 example, [Yubico's U2F demo](https://demo.yubico.com/u2f?tab=register),
