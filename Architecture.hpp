@@ -20,15 +20,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #define ARCH_RASPBERRY_PI 1
 #define ARCH_ANDROID 2
-#define ARCHITECTURE ARCH_RASPBERRY_PI
+#define ARCHITECTURE ARCH_ANDROID
 
 #if ARCHITECTURE == ARCH_RASPBERRY_PI
 	#define STORAGE_PREFIX "/usr/share/"
 	#define HID_DEV "/dev/hidg0"
-	#define DEBUG_STREAMS
+	#define DEBUG_STREAMS "/tmp/"
+//	#define DEBUG_MSGS
+	#define LEDS
 #elif ARCHITECTURE == ARCH_ANDROID
-	#define STORAGE_PREFIX "/sdcard/U2F"
+	#define STORAGE_PREFIX "/sdcard/U2F/"
 	#define HID_DEV "/dev/hidg2"
+	#define DEBUG_STREAMS "/data/local/tmp/"
+// #define DEBUG_MSGS
 #endif
 
 #undef ARCH_ANDROID

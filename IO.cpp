@@ -20,14 +20,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "Streams.hpp"
 #include <iostream>
 #include <unistd.h>
-#include <stropts.h>
 //#include <sys/ioctl.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <time.h>
+#include <chrono>
+#include <ratio>
 #include "u2f.hpp"
 #include "Macro.hpp"
+#include "U2FDevice.hpp"
 
 using namespace std;
 
@@ -38,7 +41,6 @@ vector<uint8_t> readNonBlock(const size_t count)
 {
 	if (!bytesAvailable(count))
 	{
-		//clog << "No bytes available" << endl;
 		return vector<uint8_t>{};
 	}
 
@@ -46,8 +48,6 @@ vector<uint8_t> readNonBlock(const size_t count)
 	auto buffStart = buffer.begin(), buffEnd = buffer.begin() + count;
 	vector<uint8_t> bytes{ buffStart, buffEnd };
 	buffer.erase(buffStart, buffEnd);
-	
-	fwrite(bytes.data(), 1, bytes.size(), getComHostStream().get());
 
 	errno = 0;
 
@@ -74,7 +74,27 @@ void write(const uint8_t* bytes, const size_t count)
 
 bool bytesAvailable(const size_t count)
 {
-	return getBuffer().size() >= count;
+	auto startTime = std::chrono::high_resolution_clock::now();
+	const timespec iterDelay{ 0, 1000 };
+	chrono::duration<double, milli> delay{ 0 };
+
+	while (delay.count() < U2FHID_TRANS_TIMEOUT && contProc)
+	{
+		delay = chrono::high_resolution_clock::now() - startTime;
+		if (getBuffer().size() >= count) {
+#ifdef DEBUG_MSGS
+			clog << "Requested " << count << " bytes" << endl;
+#endif
+			return true;
+		}
+		nanosleep(&iterDelay, nullptr);
+	}
+
+#ifdef DEBUG_MSGS
+	cerr << "Failed to obtain " << count << " bytes, having " << getBuffer().size() << endl;
+#endif
+
+	return false;
 }
 
 vector<uint8_t>& bufferVar()
@@ -92,21 +112,38 @@ vector<uint8_t>& getBuffer()
 	while (true)
 	{
 		auto readByteCount = read(hostDescriptor, bytes.data(), HID_RPT_SIZE);
-	
+
+		if (readByteCount > 0 && readByteCount != HID_RPT_SIZE)
+		{
+			//Failed to copy an entire packet in, so log this packet
+#ifdef DEBUG_MSGS
+			cerr << "Only retrieved " << readByteCount << " bytes from expected full packet." << endl;
+#endif
+		}
+
 		if (readByteCount > 0)
 		{
 			copy(bytes.begin(), bytes.begin() + readByteCount, back_inserter(buff));
+
+#ifdef DEBUG_STREAMS
+			fwrite(bytes.data(), 1, readByteCount, getComHostStream().get());
+#endif
+
 		}
 		else if (errno != EAGAIN && errno != EWOULDBLOCK) //Expect read would block
 		{
 			ERR();
+#if DEBUG_MSGS
+			cerr << "Unknown stream error: " << errno << endl;
+#endif
+			break;
 		}
 		else
 		{
+			errno = 0;
 			break; //Escape loop if blocking would occur
 		}
 	}
 
 	return buff;
 }
-

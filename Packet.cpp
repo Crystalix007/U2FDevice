@@ -80,6 +80,7 @@ shared_ptr<InitPacket> InitPacket::getPacket(const uint32_t rCID, const uint8_t 
 	p->bcntl = bcntl;
 	p->data  = dataBytes;
 
+#ifdef DEBUG_STREAMS
 	auto hPStream = getHostPacketStream().get();
 	fprintf(hPStream, "\t\t<table>\n"
 			"\t\t\t<thead>\n"
@@ -107,6 +108,7 @@ shared_ptr<InitPacket> InitPacket::getPacket(const uint32_t rCID, const uint8_t 
 			"\t\t\t</tbody>\n"
 			"\t\t</table>"
 			"\t\t<br />");
+#endif
 
 	bytesRead = 0;
 	return p;
@@ -136,6 +138,7 @@ shared_ptr<ContPacket> ContPacket::getPacket(const uint32_t rCID, const uint8_t 
 	p->seq = rSeq;
 	p->data = dataBytes;
 
+#ifdef DEBUG_STREAMS
 	auto hPStream = getHostPacketStream().get();
 	fprintf(hPStream, "\t\t<table>\n"
 			"\t\t\t<thead>\n"
@@ -159,6 +162,7 @@ shared_ptr<ContPacket> ContPacket::getPacket(const uint32_t rCID, const uint8_t 
 			"\t\t\t</tbody>\n"
 			"\t\t</table>\n"
 			"\t\t<br />");
+#endif
 
 	readBytes = 0;
 	return p;
@@ -230,13 +234,18 @@ void Packet::writePacket()
 void InitPacket::writePacket()
 {
 	Packet::writePacket();
+
+#ifdef DEBUG_STREAMS
 	auto devStream  = getComDevStream().get();
+#endif
 
 	memcpy(this->buf + 4, &cmd,                  1);
 	memcpy(this->buf + 5, &bcnth,                1);
 	memcpy(this->buf + 6, &bcntl,                1);
 	memcpy(this->buf + 7, data.data(), data.size());
 	write(this->buf,      sizeof(this->buf));
+
+#ifdef DEBUG_STREAMS
 	fwrite(this->buf,     1,           sizeof(this->buf), devStream);
 
 	auto dPStream = getDevPacketStream().get();
@@ -266,16 +275,22 @@ void InitPacket::writePacket()
 			"\t\t\t</tbody>\n"
 			"\t\t</table>"
 			"\t\t<br />");
+#endif
 }
 
 void ContPacket::writePacket()
 {
 	Packet::writePacket();
+
+#ifdef DEBUG_STREAMS
 	auto devStream  = getComDevStream().get();
+#endif
 
 	memcpy(this->buf + 4, &seq,                  1);
 	memcpy(this->buf + 5, data.data(), data.size());
 	write(this->buf,      HID_RPT_SIZE);
+
+#ifdef DEBUG_STREAMS
 	fwrite(this->buf,     HID_RPT_SIZE,           1,  devStream);
 
 	auto dPStream = getDevPacketStream().get();
@@ -302,4 +317,5 @@ void ContPacket::writePacket()
 			"\t\t\t</tbody>\n"
 			"\t\t</table>\n"
 			"\t\t<br />");
+#endif
 }

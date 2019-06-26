@@ -138,6 +138,7 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 
 	const auto dBytes = vector<uint8_t>(startPtr, endPtr);
 
+#ifdef DEBUG_STREAMS
 	auto hAS = getHostAPDUStream().get();
 
 	fprintf(hAS, "<table>\n"
@@ -170,6 +171,7 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 			"\t\t\t</tbody>\n"
 			"\t\t</table>\n"
 			"\t\t<br />", cmd.le);
+#endif
 
 	try
 	{

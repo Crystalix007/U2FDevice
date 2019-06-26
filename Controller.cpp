@@ -64,6 +64,11 @@ void Controller::handleTransaction()
 		}
 	}
 
+#ifdef DEBUG_MSGS
+	clog << "Message:" << endl;
+	clog << "cid: " << msg->cid << ", cmd: " << static_cast<unsigned int>(msg->cmd) << endl;
+#endif
+
 	channels.at(opChannel).handle(msg);
 }
 

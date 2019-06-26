@@ -23,12 +23,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <iomanip>
 #include "Streams.hpp"
 #include "u2f.hpp"
+#include "IO.hpp"
 
 using namespace std;
 
 shared_ptr<U2FMessage> U2FMessage::readNonBlock()
 {
-	static size_t	       currSeq = -1;
+	const  static   size_t startSeq = (size_t)-1ull;
+	static size_t          currSeq = startSeq;
 	static uint16_t        messageSize;
 	static uint32_t        cid;
 	static uint8_t         cmd;
@@ -36,7 +38,7 @@ shared_ptr<U2FMessage> U2FMessage::readNonBlock()
 
 	shared_ptr<Packet> p{};
 
-	if (currSeq == -1u)
+	if (currSeq == startSeq)
 	{
 		cid = 0;
 		cmd = 0;
@@ -52,6 +54,11 @@ shared_ptr<U2FMessage> U2FMessage::readNonBlock()
 				return {};
 
 			initPack = dynamic_pointer_cast<InitPacket>(p);
+
+#ifdef DEBUG_MSGS
+			if (!initPack)
+				cerr << "Spurious cont. packet" << endl;
+#endif
 		} while (!initPack); //Spurious cont. packet - spec states ignore
 
 		messageSize = ((static_cast<uint16_t>(initPack->bcnth) << 8u) + initPack->bcntl);
@@ -61,7 +68,7 @@ shared_ptr<U2FMessage> U2FMessage::readNonBlock()
 		cmd = initPack->cmd;
 		
 		copy(initPack->data.begin(), initPack->data.begin() + copyByteCount, back_inserter(dataBytes));
-		currSeq++;
+		currSeq = 0;
 	}
 
 	while (messageSize > dataBytes.size() && static_cast<bool>(p = Packet::getPacket())) //While there is a packet
@@ -70,38 +77,50 @@ shared_ptr<U2FMessage> U2FMessage::readNonBlock()
 
 		if (!contPack) //Spurious init. packet
 		{
-			currSeq = -1; //Reset
+#ifdef DEBUG_MSGS
+			cerr << "Spurious init. packet" << endl;
+#endif
+			currSeq = startSeq; //Reset
 			return {};
 		}
 
 		if (contPack->cid != cid) //Cont. packet of different CID
 		{
+#ifdef DEBUG_MSGS
 			cerr << "Invalid CID: was handling channel 0x" << hex << cid << " and received packet from channel 0x" << contPack->cid << dec << endl;
+#endif
 			U2FMessage::error(contPack->cid, ERR_CHANNEL_BUSY);
-			currSeq = -1;
+			currSeq = startSeq;
 			return {};
 		}
 
 		if (contPack->seq != currSeq)
 		{
+#ifdef DEBUG_MSGS
 			cerr << "Invalid packet seq. value" << endl;
+#endif
 			U2FMessage::error(cid, ERR_INVALID_SEQ);
-			currSeq = -1;
+			currSeq = startSeq;
 			return {};
 		}
 
 		const uint16_t remainingBytes = messageSize - dataBytes.size();
 		const uint16_t copyBytes = min(static_cast<uint16_t>(contPack->data.size()), remainingBytes);
+
 		dataBytes.insert(dataBytes.end(), contPack->data.begin(), contPack->data.begin() + copyBytes);
 		currSeq++;
 	}
 
-	if (messageSize != dataBytes.size())
+	if (messageSize != dataBytes.size()) {
+#ifdef DEBUG_MSGS
+		cerr << "Invalid message size: " << messageSize << " when received " << dataBytes.size() << endl;
+#endif
 		return {};
+	}
 
 	auto message = make_shared<U2FMessage>(cid, cmd);
 	message->data.assign(dataBytes.begin(), dataBytes.end());
-	currSeq = -1u;
+	currSeq = startSeq;
 
 	return message;
 }
@@ -146,6 +165,7 @@ void U2FMessage::write()
 
 	if (cmd == U2FHID_MSG)
 	{
+#ifdef DEBUG_STREAMS
 		auto dAS = getDevAPDUStream().get();
 	
 		fprintf(dAS, "<table>\n"
@@ -161,16 +181,19 @@ void U2FMessage::write()
 		
 		for (size_t i = 0; i < data.size() - 2; i++)
 			fprintf(dAS, "%3u ", data[i]);
+#endif
 	
 		uint16_t err = data[data.size() - 2] << 8;
 		err |= data.back();
 	
+#ifdef DEBUG_STREAMS
 		fprintf(dAS, "</td>\n"
 				"\t\t\t\t\t<td>0x%04X</td>\n"
 				"\t\t\t\t</tr>\n"
 				"\t\t\t</tbody>\n"
 				"\t\t</table>\n"
 				"\t\t<br />", err);
+#endif
 	}
 }
 

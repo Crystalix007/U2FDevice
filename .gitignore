@@ -1,5 +1,5 @@
-libuECC.o
-libcppb64.o
+libuECC.a
+libcppb64.a
 U2FDevice
 obj/*
 U2F_Priv_Keys.txt

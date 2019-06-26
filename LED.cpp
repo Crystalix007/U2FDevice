@@ -35,9 +35,9 @@ bool getLEDState()
 	return ledState();
 }
 
-void disableACTTrigger(bool nowDisabled)
+void disableACTTrigger([[maybe_unused]] bool nowDisabled)
 {
-#if ARCHITECTURE == RASPBERRY_PI
+#ifdef LEDS
 	ofstream trigFile{ "/sys/class/leds/led0/trigger", ofstream::out | ofstream::trunc };
 
 	if (!trigFile)
@@ -48,9 +48,9 @@ void disableACTTrigger(bool nowDisabled)
 #endif
 }
 
-void enableACTLED(bool nowOn)
+void enableACTLED([[maybe_unused]] bool nowOn)
 {
-#if ARCHITECTURE == RASPBERRY_PI
+#ifdef LEDS
 	if (nowOn == getLEDState())
 		return;
 
