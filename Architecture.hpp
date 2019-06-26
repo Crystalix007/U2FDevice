@@ -20,7 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #define ARCH_RASPBERRY_PI 1
 #define ARCH_ANDROID 2
-#define ARCHITECTURE ARCH_ANDROID
+#define ARCHITECTURE ARCH_RASPBERRY_PI
 
 #if ARCHITECTURE == ARCH_RASPBERRY_PI
 	#define STORAGE_PREFIX "/usr/share/"
