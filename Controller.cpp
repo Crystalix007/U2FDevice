@@ -32,7 +32,7 @@ void Controller::handleTransaction()
 {
 	try
 	{
-		if (channels.size() != 0 && chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - lastMessage) < 5s)
+		if (channels.size() != 0 && chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - lastMessage) < chrono::seconds(5))
 			toggleACTLED();
 		else
 			enableACTLED(false);

@@ -48,13 +48,13 @@ void Storage::init(const string &dirPrefix)
 			throw runtime_error{ string{ "Invalid syntax of line " } + strLineNum };
 
 		char *endP = nullptr;
-		auto keyH{ static_cast<Storage::KeyHandle>(strtoull(keyHStr.c_str(), &endP, 10)) };
+		Storage::KeyHandle keyH{ static_cast<Storage::KeyHandle>(strtoull(keyHStr.c_str(), &endP, 10)) };
 
 		if (!endP)
 			throw runtime_error{ "Invalid keyhandle format on line " + strLineNum };
 		
 		endP = nullptr;
-		auto keyC{ static_cast<Storage::KeyCount>(strtoull(keyCStr.c_str(), &endP, 10)) };
+		Storage::KeyCount keyC{ static_cast<Storage::KeyCount>(strtoull(keyCStr.c_str(), &endP, 10)) };
 
 		if (!endP)
 			throw runtime_error{ "Invalid key count format on line " + strLineNum };
