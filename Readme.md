@@ -1,131 +1,232 @@
 # U2FDevice
 
-This program uses a Raspberry Pi 0 to act as a [U2F token](https://www.yubico.com/solutions/fido-u2f/). This permits any person with a Raspberry Pi 0 to try out U2F 2FA for themselves.
+This program uses an [Android smartphone](https://www.android.com/intl/en_uk/) to act as a [U2F token](https://www.yubico.com/solutions/fido-u2f/). This permits any person with a compatible Android phone to try out U2F 2FA for themselves.
+
+All testing has been performed on a [Nexus 5X](https://en.wikipedia.org/wiki/Nexus_5X).
 
 # Required materials
 
-![Raspberry Pi Zero](https://www.raspberrypi.org/app/uploads/2017/05/Raspberry-Pi-Zero-462x322.jpg "Raspberry Pi 0")
-
-![SD Card with capacity > 2GB](https://upload.wikimedia.org/wikipedia/commons/d/da/MicroSD_cards_2GB_4GB_8GB.jpg "SD Card with capacity > 2GB")
+![Android smartphone](https://upload.wikimedia.org/wikipedia/commons/4/40/Nexus_5X_%28White%29.jpg "Nexus 5X")
 
 ![Computer](https://upload.wikimedia.org/wikipedia/commons/f/fa/BackSlash_Linux_Olaf_Laptop_Dekstop.png "Preferably Linux computer")
 
-![Confirmed-working micro USB data cable](Readme_Assets/Micro_USB_Cable.png "Micro USB Data Cable")
+![Confirmed-working USB data cable](Readme_Assets/Micro_USB_Cable.png "Micro USB Data Cable")
 
 # OS Install
 
-## Getting the image
+## Getting the ROM
 
-Go [here](https://www.raspberrypi.org/downloads/raspbian/) and download the Raspbian Stretch _Lite_ image.<br />If you download the zip, make sure you extract it.
+Choose whichever [ROM](https://www.xda-developers.com/what-is-custom-rom-android/) you want **for your device**. Make sure that the kernel source is available for it.
 
-## Installing the image
+For example, using the [Nexus 5X](https://en.wikipedia.org/wiki/Nexus_5X), I chose [CypherOS 7](https://forum.xda-developers.com/nexus-5x/development/rom-cypheros-7-0-0-poundcake-t3869446).
 
-Once you have the `*.img` file, you must write it to an SD card. <br />For this, I suggest the use of [etcher.io](https://etcher.io/) which works cross-platfrom. Alternatively, use whatever image burner you want.
+## Installing the ROM
 
-## Mounting the SD Card
+Install TWRP. See [here](https://www.xda-developers.com/how-to-install-twrp/) for details.
+Install ROM. See [here](https://www.xda-developers.com/how-to-install-custom-rom-android/) for details.
+Install a root utility. Note that there are multiple options, but I recommend [Magisk](https://forum.xda-developers.com/apps/magisk/official-magisk-v7-universal-systemless-t3473445), with details on how to install [here](https://www.xda-developers.com/how-to-install-magisk/) also.
 
-After the image burning has completed, most OSs should automatically mount the SD card. We only need access to the `boot` partition initially.
+## Booting the device
 
-![Storage Monitor](Readme_Assets/Storage.png)
+Check the device boots now, by rebooting from TWRP. It is possible to skip this step, but don't. This gives you the assurance that the ROM actually works on your device / you performed the install steps correctly.
 
-## Setting up SSH
+## Getting the kernel
 
-Since this device can be set up without a monitor, we shall. <br />First, we need to enable SSH.
-1. Open the boot partition - it should look like so: <br />![Boot Partition](Readme_Assets/Boot_partition.png)
+Note, if using a Nexus 5X with the same ROM, you can skip ahead, as a pre-built boot image has already been prepared, from the source available [here](https://github.com/Crystalix007/kernel_lge_bullhead).
 
-2. Create a `ssh` file. Note that this doesn't have any extension. For Linux users, you can open a console in this directory, and `touch ssh` to create the file. This file enables `ssh` on the latest versions of Raspbian. <br />![ssh file](Readme_Assets/Create_ssh.png)
+1. From the place where you got your ROM, there should be an explanation of where to get the corresponding kernel source. Most often, this is hosted on [Github](https://github.com/).
+Alternatively, for stock ROMS, seek out your manufacturer's website for the source code, for example [LG Open Source](http://opensource.lge.com/index).
 
-3. Edit `config.txt`. Using your preferred editor, add the line `dtoverlay=dwc2` to the end. <br />![Edited config.txt](Readme_Assets/Edit_config_txt.png)
+2. On a Linux (virtual) machine, [`git clone`](https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository#_git_cloning) this source / download it and unpack it.
 
-4. Edit `cmdline.txt`. Again, using your preferred editor, between `rootwait` and the next word, insert `modules-load=dwc2,g_ether` leaving only one space after `rootwait` and one before the next word. <br />![Edited cmdline.txt](Readme_Assets/Edit_cmdline_txt.png)
+3. Build the kernel from source to check the build works ([paraphrased from xda-developers](https://forum.xda-developers.com/android/software-hacking/reference-how-to-compile-android-kernel-t3627297)).
+	* install a cross-compiler for [your device's **architecture**](https://wiki.lineageos.org/devices/).
+	* setup environment to target cross-compiler: `export CROSS_COMPILE=<compiler-prefix->`, where if your cross-compiler's `gcc` is `/usr/bin/aarch64-linux-android-gcc`, then the prefix is `/usr/bin/aarch64-linux-android-`.
+	* setup environment to target correct architecture: `export ARCH=<arch> && export SUBARCH=<arch>`. Here, `<arch>` can be `arm`, `arm64`, `x86`, etc.
+	* setup a Python 2 virtualenv: `virtualenv2 kernelbuild && source kernelbuild/bin/activate`
+	* find your defconfig. This will be inside `arch/<arch>/configs`, and have a name like `<codename>_defconfig`, e.g. `bullhead_defconfig` for the Nexus 5X. If you cannot find the correct file, look up your specific device.
+	* run:
+		* `make clean`
+		* `make mrproper`
+		* `make <defconfig_name>`
+		* `make -j$(nproc --all)`
+	* if, during the build, it fails due to a missing program or library, install, retry the command, and continue.
 
-5. Eject the SD card safely. <br />![Eject SD card](Readme_Assets/Eject_SD.png)
+4. Build a replacement `boot.img` to flash in TWRP:
+	* download the latest Android Image Kitchen (AIK) script from [this thread](https://forum.xda-developers.com/showthread.php?t=2073775), and unzip outside the kernel source.
+	* take the existing `boot.img` from your chosen ROM (try looking inside the zip file), and copy it to the unpacked AIK folder.
+	* run `./unpackimg.sh <your-boot-img>.img`.
+	* copy your built kernel called `Image`, `Image-dtb`, `Image.gz` or `Image.gz-dtb`, from `arch/<arch>/boot` in the kernel folder, to the `split_img` subfolder inside the AIK folder.
+	* navigate into the `split_img` folder, and replace the old `boot.img-zImage` with your compiled kernel.
+	* navigate up a folder, to the AIK folder, and run `./repackimg.sh` to build an `image-new.img` image.
 
-6. Insert the SD card into the Raspberry Pi. <br />![Inserted SD card](Readme_Assets/Insert_SD.png)
+5. Install the compiled kernel, to check the compiled kernel still works:
+	* reboot your device to TWRP.
+	* copy the `image-new.img` to your device.
+	* install from TWRP (you can press the `Install Image` button in the install menu to see images) to the boot partition.
+	* re-install Magisk (or whichever root utility you choose), as it was likely lost when you flashed the new kernel
 
-7. Use a known USB micro data cable to connect the Raspberry Pi to a computer.
+6. Reboot to ensure the device still works.
 
-   * If possible, check this cable can transfer data by connecting another device and attempting to transfer a file.
-   * If possible, use a Linux computer for the next step, one with a graphical network manager.
-   * If possible, use a USB 3 or higher port instead of a USB 2 port. This is because the USB port will supply the entire power for the Raspberry Pi, and some USB 2 ports may not be able to deliver the required power.
+7. Find the required patch from [pelya/android-keyboard-gadget](https://github.com/pelya/android-keyboard-gadget). You will want to look in the subdirectory patches for a patch matching your device's description. If you cannot find your device, you will have to try applying one of the [generic patches according to your kernel version](https://github.com/pelya/android-keyboard-gadget/tree/master/patches/existing_tested/by-generic-kernel-version).
 
-8. Let the Raspberry Pi fully boot up (once the LED stops blinking frequently, it is probably booted). Then you need to configure your network settings.
+To apply a patch, download it to the kernel directory, and run `git apply name-of-file.patch` if you cloned the directory, or `patch -p1 < name-of-file.patch` if you downloaded the kernel.
 
-   * Linux:
+8. Modify your kernel to support U2F:
+	* using the previous patch for guidance, apply a U2F patch [also available here](Scripts/u2f-kernel.patch)
 
-     * Use your preferred network manager:
+		```diff
+		diff --git a/drivers/usb/gadget/android.c b/drivers/usb/gadget/android.c
+		index ced63c82ae7..41ac7ac18ca 100644
+		--- a/drivers/usb/gadget/android.c
+		+++ b/drivers/usb/gadget/android.c
+		@@ -55,20 +55,21 @@
+		 #include "u_ctrl_hsic.c"
+		 #include "u_data_hsic.c"
+		 #include "u_ctrl_hsuart.c"
+		 #include "u_data_hsuart.c"
+		 #include "f_ccid.c"
+		 #include "f_mtp.c"
+		 #include "f_accessory.c"
+		 #include "f_hid.h"
+		 #include "f_hid_android_keyboard.c"
+		 #include "f_hid_android_mouse.c"
+		+#include "f_hid_android_u2f.c"
+		 #include "f_rndis.c"
+		 #include "rndis.c"
+		 #include "f_qc_ecm.c"
+		 #include "f_mbim.c"
+		 #include "f_qc_rndis.c"
+		 #include "u_data_ipa.c"
+		 #include "u_bam_data.c"
+		 #include "f_ecm.c"
+		 #include "u_ether.c"
+		 #include "u_qc_ether.c"
+		@@ -2855,21 +2856,21 @@ static int uasp_function_bind_config(struct android_usb_function *f,
 
-     * Create a new connection profile <br />![Creating connection profile](Readme_Assets/Add_connection.png)
+		 static struct android_usb_function uasp_function = {
+		 	.name		= "uasp",
+		 	.init		= uasp_function_init,
+		 	.cleanup	= uasp_function_cleanup,
+		 	.bind_config	= uasp_function_bind_config,
+		 };
 
-     * Set it's type to be 'Wired Ethernet (shared)' if available, else, 'Wired Ethernet'
+		 static int hid_function_init(struct android_usb_function *f, struct usb_composite_dev *cdev)
+		 {
+		-	return ghid_setup(cdev->gadget, 2);
+		+	return ghid_setup(cdev->gadget, 3);
+		 }
 
-     * Name it <br />![Naming new connection](Readme_Assets/Configure_Connection_Name.png)
+		 static void hid_function_cleanup(struct android_usb_function *f)
+		 {
+		 	ghid_cleanup();
+		 }
 
-     * Ensure the method is set to 'Shared to other computers', or similar. <br />![Sharing connection to other computers](Readme_Assets/Configure_Connection_Method.png)
+		 static int hid_function_bind_config(struct android_usb_function *f, struct usb_configuration *c)
+		 {
+		 	int ret;
+		@@ -2878,20 +2879,26 @@ static int hid_function_bind_config(struct android_usb_function *f, struct usb_c
+		 	if (ret) {
+		 		pr_info("%s: hid_function_bind_config keyboard failed: %d\n", __func__, ret);
+		 		return ret;
+		 	}
+		 	printk(KERN_INFO "hid mouse\n");
+		 	ret = hidg_bind_config(c, &ghid_device_android_mouse, 1);
+		 	if (ret) {
+		 		pr_info("%s: hid_function_bind_config mouse failed: %d\n", __func__, ret);
+		 		return ret;
+		 	}
+		+	printk(KERN_INFO "hid u2f\n");
+		+	ret = hidg_bind_config(c, &ghid_device_android_u2f, 2);
+		+	if (ret) {
+		+		pr_info("%s: hid_function_bind_config u2f failed: %d\n", __func__, ret);
+		+		return ret;
+		+	}
+		 	return 0;
+		 }
 
-     * Save and connect on the connection not currently used. <br />![Connecting to new connection](Readme_Assets/Connect_to_connection.png)
+		 static struct android_usb_function hid_function = {
+		 	.name		= "hid",
+		 	.init		= hid_function_init,
+		 	.cleanup	= hid_function_cleanup,
+		 	.bind_config	= hid_function_bind_config,
+		 };
 
-     * Check your IP address on this network. <br />![Checking IP address](Readme_Assets/Checking_IP_Address.png)
+		diff --git a/drivers/usb/gadget/f_hid.c b/drivers/usb/gadget/f_hid.c
+		index 155d9fb3a08..117bc00feac 100644
+		--- a/drivers/usb/gadget/f_hid.c
+		+++ b/drivers/usb/gadget/f_hid.c
+		@@ -57,21 +57,21 @@ struct f_hidg {
+		 	int				minor;
+		 	struct cdev			cdev;
+		 	struct usb_function		func;
 
-       * This shows that the host computer (Linux) has the IP address `10.42.0.1`
+		 	struct usb_ep			*in_ep;
+		 	struct usb_ep			*out_ep;
+		 };
 
-       * Therefore, the Raspberry Pi has an IP address of `10.42.0.*`, where `*` can be any number 2-255.
+		 /* Hacky device list to fix f_hidg_write being called after device destroyed.
+		    It covers only most common race conditions, there will be rare crashes anyway. */
+		-enum { HACKY_DEVICE_LIST_SIZE = 4 };
+		+enum { HACKY_DEVICE_LIST_SIZE = 6 };
+		 static struct f_hidg *hacky_device_list[HACKY_DEVICE_LIST_SIZE];
+		 static void hacky_device_list_add(struct f_hidg *hidg)
+		 {
+		 	int i;
+		 	for (i = 0; i < HACKY_DEVICE_LIST_SIZE; i++) {
+		 		if (!hacky_device_list[i]) {
+		 			hacky_device_list[i] = hidg;
+		 			return;
+		 		}
+		 	}
+		diff --git a/drivers/usb/gadget/f_hid_android_u2f.c b/drivers/usb/gadget/f_hid_android_u2f.c
+		new file mode 100644
+		index 00000000000..950c244e032
+		--- /dev/null
+		+++ b/drivers/usb/gadget/f_hid_android_u2f.c
+		@@ -0,0 +1,28 @@
+		+#include <linux/platform_device.h>
+		+#include <linux/usb/g_hid.h>
+		+
+		+/* HID descriptor for a mouse */
+		+static struct hidg_func_descriptor ghid_device_android_u2f = {
+		+	.subclass      = 0x01, /* Boot Interface Subclass */
+		+	.protocol      = 0x00, /* Raw HID */
+		+	.report_length = 512,
+		+	.report_desc_length	= 34,
+		+	.report_desc = {
+		+		0x06, 0xD0, 0xF1, // Usage Page (FIDO Usage Page)
+		+		0x09, 0x01,       // Usage (FIDO Usage U2F HID)
+		+		0xA1, 0x01,       // Collection (Application)
+		+		0x09, 0x20,       // Usage (FIDO Usage Data In)
+		+		0x15, 0x00,       // Logical Minimum (0)
+		+		0x26, 0xFF, 0x00, // Logical Maximum (255)
+		+		0x75, 0x08,       // Report Size (8)
+		+		0x95, 0x40,       // Report Count (HID Input Report Bytes)
+		+		0x81, 0x02,       // Input (HID Data & HID Absolute & HID Variable)
+		+		0x09, 0x21,       // Usage (FIDO Usage Data Out)
+		+		0x15, 0x00,       // Logical Minimum (0)
+		+		0x26, 0xFF, 0x00, // Logical Maximum (255)
+		+		0x75, 0x08,       // Report Size (8)
+		+		0x95, 0x40,       // Report Count (HID Output Report Bytes)
+		+		0x91, 0x02,       // Output (HID Data & HID Absolute & HID Variable)
+		+		0xC0              // End Collection
+		+	}
+		+};
+		```
 
-       * Find the Raspberry Pi's address by using the tool [`nmap`](https://nmap.org/), installable from your preferred package manager.
+	* note that some of these settings are non-standard, and work around limitations experienced when debugging. See [warnings](#Warnings) below for more details.
 
-         `nmap -sn "10.42.0.*"` and look for the IP address which the host doesn't have (i.e. look for the ip address other than 10.42.0.1 in this example).
+9. Recompile the kernel
+	* run `make -k$(nproc --all)` again.
+	* copy kernel to split_img subfolder inside AIK folder.
+	* rename the kernel image.
+	* run `./repackimg.sh` from AIK folder.
+	* reboot device to TWRP and copy `image-new.img` to device.
+	* install new image to `boot` partition, and reinstall Magisk.
+	* reboot device to check it still boots.
 
-         For example, when I ran the command, the output was <br />![10.42.0.172](Readme_Assets/Nmap_IP_scan.png)
-
-         so the IP address I am looking for is `10.42.0.172`.
-
-9. Connecting
-
-  * Linux users
-    * Now finally we can SSH into the Raspberry Pi:
-
-         `ssh pi@RASPBERRY_PI_IP`
-
-         So in my example, the command would be:
-
-         `ssh pi@10.42.0.172`
-
-  * Other OSs
-
-    * For users of windows, see [ssh using PUTTY](https://desertbot.io/blog/headless-pi-zero-ssh-access-over-usb-windows#step-8-install-putty), and for users of OS X, you can simply ssh in using `ssh pi@raspberrypi.local` in a terminal.
-
-  * This should then ask you if you want to continue connecting, displaying the ECDSA key.  Type `yes` and hit enter to continue.<br />![Continue connecting](Readme_Assets/SSH_connecting_ECDSA.png)
-
-  * Then, when the password is asked for, type `raspberry` - the default password in Raspbian.
-
-10. Then, change your password using `passwd`. Enter `raspberry` as the current password, and a memorable password for the new password.
-
-## Setting up USB config for multiple drivers simultaneously
-
-Past this point, do not reboot / power off unless you wish to start all over again.
-
-1. Edit `/boot/cmdline.txt` by using `sudoedit /boot/cmdline.txt`
-   * Remove the `modules-load=dwc2,g_ether` and ensure there is no trailing space.
-   * Close and save by pressing `ctrl-x`.
-2. Edit `/etc/modules` by using `sudoedit /etc/modules`
-   * Add `libcomposite` at the end of the file (i.e. not on a line beggining with `#`).
-
-## Setting up the libcomposite config script
-
-### Getting Git
-
-1. Update package list using `sudo apt-get update`
-2. Get git by running `sudo apt-get install git`
-
-### Using this respository
-
-1. Grab the contents of this repository using `git clone https://github.com/Crystalix007/U2FDevice.git`
-2. Enter the cloned directory by running `cd U2FDevice`
-3. Install the config script using `sudo install -m755 Scripts/Kernel_HID_Config.sh /usr/bin/Kernel_HID_Config.sh`
-4. Install the config script startup service by editing `/etc/rc.local`
-   * `sudoedit /etc/rc.local`
-   * Add `/usr/bin/Kernel_HID_Config.sh`, on a new line, before `'exit 0'`
-5. At this point you are once again free to reboot / shutdown.
+For Nexus 5X users, see the `precompiled` subdirectory for both the kernel, in the form of a precompiled `boot.img` and a precompiled form of this project. Using these, you may skip to [running the program](#Run-the-program).
 
 ## Setting up udev rules
 
@@ -133,7 +234,12 @@ For Linux only.
 
 On most distributions of Linux, devices get automatically managed based upon certain tags they expose to the computer. This program exposes custom tags to uniquely identify it from other U2F keys. However, as a result, the automatic rules do not include it in the list of USB devices to mount as U2F keys.
 
-On your Linux desktop, run the command `ls /etc/udev/rules.d/`. Look for anything which seems related to U2F. <br />For example, on my computer, I have the rules `/etc/udev/rules.d/70-u2f.rules`. <br />Inside this file, the contents are:
+To find the required details of your Android device, run `lsusb`. Look for something named `Bus 0?? Device 0??: ID 18d1:4ee2 Google Inc. Nexus Device (debug)` or similar. Keep track of the value in your output like **`18d1:4ee2`**.
+
+On your Linux desktop, run the command `ls /etc/udev/rules.d/`. Look for anything which seems related to U2F.
+For example, on my computer, I have the rules `/etc/udev/rules.d/70-u2f.rules`.
+
+Inside this file, the contents are:
 
 ```
 # Copyright (C) 2013-2015 Yubico AB
@@ -193,12 +299,16 @@ KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="18d1", ATTRS{idProduct
 LABEL="u2f_end"
 ```
 
-Basically, this file contains the same contents as [Yubico's udev rules](https://github.com/Yubico/libu2f-host/blob/master/70-u2f.rules). <br />
-If you don't have any rules, download the [raw file](https://raw.githubusercontent.com/Yubico/libu2f-host/master/70-u2f.rules), and copy it to the `/etc/udev/rules.d/` directory. <br />
-Then, add: <br />
-```# Rapsberry Pi U2F```<br /> ```KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="1209", ATTRS{idProduct}=="2900", TAG+="uaccess"``` <br />
-on lines just before `LABEL="u2f_end"`.
+Basically, this file contains the same contents as [Yubico's udev rules](https://github.com/Yubico/libu2f-host/blob/master/70-u2f.rules).
+If you don't have any rules, download the [raw file](https://raw.githubusercontent.com/Yubico/libu2f-host/master/70-u2f.rules), and copy it to the `/etc/udev/rules.d/` directory.
 
+Then, add:
+
+```
+# Android Device U2F
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS{idVendor}=="18d1", ATTRS{idProduct}=="4ee2", TAG+="uaccess"
+```
+on lines just before `LABEL="u2f_end"`, replacing `18d1` and `4ee2` with their corresponding values from your previous `lsusb` output.
 Then, reload the rules using `sudo udevadm control --reload-rules `
 
 ## Setting up to build
@@ -207,45 +317,60 @@ Then, reload the rules using `sudo udevadm control --reload-rules `
 2. Copy the `cpp-base64` Makefile using `cp Scripts/cpp-base64-Makefile cpp-base64/Makefile`
 3. Copy the `micro-ecc` Makefile using `cp Scripts/uECC-Makefile micro-ecc/Makefile`
 4. Make the object file directories using `mkdir obj && mkdir cpp-base64/obj && mkdir micro-ecc/obj`
-5. Grab the required library using `sudo apt-get install libmbedtls-dev`
+5. Grab the required mbedtls library:
+	* outside this directory, run `git clone --recursive https://github.com/ARMmbed/mbedtls.git`
+	* enter the directory with `cd mbedtls`
+	* build for cross-compile with `sudo make DESTDIR=/opt
+		CXX=<cross-compiler-prefix>-g++ CC=<cross-compiler-prefix>-gcc install`,
+		using the cross-compiler-prefix previously discussed in the [_Getting the
+		kernel_](#Getting-the-kernel) phase.
 
 ## Build the program
 
-1. Run `make`
+Run `make CROSS_COMPILE=<cross-compiler-prefix>`, using the cross-compiler-prefix previously discussed in the [_Getting the kernel_ phase](#Getting-the-kernel).
 
-## Install the program
+## Run the program
 
-1. Run `sudo make install`
+1. If you haven't already, enable [device USB debugging](https://developer.android.com/studio/debug/dev-options#enable).
+2. Copy the program to the device to test with `adb push U2FDevice /data/local/tmp`
+3. Open up a shell to your phone, using `adb shell`.
+4. Navigate to where the file is stored, running `cd /data/local/tmp`.
+5. Get SuperUser access, with `su`. Note, you may need to open the manager
+	 program of your root toolkit of choice to permit root.
+6. Run the program with `./U2FDevice`.
 
 # Warnings
 
-## To shut down
-
-This device cannot be powered off without running a command in SSH (for now). If the device has its power interrupted by a sudden poweroff, it is likely there will be corruption which will render all data on the SD card useless.
-
-So, to power off currently, SSH into the device as shown above, then run the command `sudo poweroff ; exit`
-
 ## Security issues
 
-This project is intended solely for the use in experimentation of the use of U2F or as a backup for keys. It is _not_ intended for use as a regular day-to-day key for several reasons.
+This project is intended solely for the use in experimentation of the use of
+U2F or as a backup for keys. It is _not_ intended for use as a regular
+day-to-day key for several reasons.
 
-* Private keys are stored in a freely accessible file (to users of the pi) `/usr/share/U2FDevice/U2F_Priv_Keys.txt`
-* This program doesn't comply with the specification with regards to user interaction. There is a specific code sent to check for user interaction for registering or authenticating keys. This requirement is ignored by this implementation as there are no pre-existing buttons on the Pi.
-* Whilst this program is functional, it has the possibility of unintended crashes. I have tested to the limits I require, but you may require additional assurance.
-* This program's private keys are stored on an SD card. This is an incredibly volatile medium (and yes, regularly I mean that in the computing sense - SD cards regularly do cleanup / maintenance routines that can cause complete corruption if the power is lost suddenly). I would not consider these keys safe under very regular use (infrequent use should be fine though).
-* This solution is rather unwieldy - it requires a long boot time and must be shutdown (for now) with a command using SSH.
+* Private keys are stored in a freely accessible file (to all apps on the device) `/sdcard/U2F/U2F_Priv_Keys.txt`
+* This program doesn't comply with the specification with regards to user
+	interaction. There is a specific code sent to check for user interaction for
+	registering or authenticating keys. This requirement is ignored by this
+	implementation as currently, the program cannot natively interface with the
+	Android device's buttons.
+* Whilst this program is functional, it has the possibility of unintended
+	crashes. I have tested to the limits I require, but you may require
+	additional assurance.
+* This solution is rather unwieldy - it requires a modified kernel and must be
+	launched from the commandline.
 
-For these reasons, if you want to use this as a way to backup your other U2F devices against loss, this may be a very valid solution, but please don't rely solely on this solution for U2F security.
-
-## To improve RNG (improve crypto security)
-
-1. Install `rng-tools` with `sudo apt-get install rng-tools`
+For these reasons, if you want to use this as a way to backup your other U2F
+devices against loss, this may be a very valid solution, but please don't rely
+solely on this solution for U2F security.
 
 ## To change the Attestation certificate
 
-This may be highly advisable, or inadvisable - I am currently unsure. <br />All registration requests use this private key, so likely advisable. <br/>However, you can be uniquely identified by having a unique attestation certificate.
+This is probably highly advisable.
+All registration requests use this private key, so you can be uniquely
+identified by having a unique attestation certificate, however, it permits you
+to have a secure attestation certificate, so still worth it.
 
-See the `Readme.AttestationCertificateGeneration.txt`
+See the [`Readme.AttestationCertificateGeneration.txt`](Readme.AttestationCertificateGeneration.txt)
 
 # Running the program
 
@@ -253,32 +378,33 @@ See the `Readme.AttestationCertificateGeneration.txt`
 
 Run `sudo systemctl start U2FDevice.service`
 
-At this point, the program should be tested using U2F demo websites. For example, [Yubico's U2F demo](https://demo.yubico.com/u2f?tab=register), or [appspot's U2F demo](https://crxjs-dot-u2fdemo.appspot.com/). First register the device, then test authentication.
+At this point, the program should be tested using U2F demo websites. For
+example, [Yubico's U2F demo](https://demo.yubico.com/u2f?tab=register),
+[Yubico's WebAuthn demo](https://demo.yubico.com/webauthn-technical/registration),
+or [DUO Lab's WebAuthn demo](https://webauthn.io/). First register the device, then test authentication.
 
 If the program doesn't work on these - don't use as a backup device.
 
-## To run automatically at boot
-
-Once the program runs successfully, you can enable automatic startup at boot.
-
-Run `sudo systmectl enable U2FDevice.service`
-
 ## Debug files
 
-For those of you wishing to dig around in the actual protocol work, these are the files used by the application to log the activity.
+For those of you wishing to dig around in the actual protocol work, these are the files used by the application to log the activity. For this, you must enable the `DEBUG_STREAMS` flag in `Architecture.hpp`, and recompile.
 
-The documents used for raw communication contain just that - the raw data sent to and from the device. <br />To view this data, I would recommend using `od` . For example, `cat /tmp/comdev.txt | od -tx1 -Anone -v` in order  to print out the bytes sent from the Raspberry Pi to the PC in hexadecimal form.
+The documents used for raw communication contain just that - the raw data sent to and from the device.
+
+To view this data, I would recommend using `od` or `xxd`. For example, `cat comdev.txt | od -tx1 -Anone -v` in order  to print out the bytes sent from the Android device to the PC in hexadecimal form.
 
 The documents used for packets show the higher-level structures used in the U2F protocol. The first level above the data sent in USB frames is the `U2F-HID` protocol. The most recent specification for these packets is available [here](https://fidoalliance.org/specs/fido-u2f-v1.2-ps-20170411/fido-u2f-hid-protocol-v1.2-ps-20170411.html) (as of 12/07/2018). This level details mainly how the PC performs the setup for talking to the device.
 
 The next level above that is the actual `U2F` protocol. The most recent specification for these messages is available [here](https://fidoalliance.org/specs/fido-u2f-v1.2-ps-20170411/fido-u2f-raw-message-formats-v1.2-ps-20170411.html) (as of 12/07/2018). This level details how registration and authentication actually occurs.
 
+These file paths assume that the U2FDevice program is being run from `/data/local/tmp/`, as `./U2FDevice`.
+
 * __Raw communication__
-  * /tmp/comdev.txt
-  * /tmp/comhost.txt
+	* /data/local/tmp/comdev.txt
+	* /data/local/tmp/comhost.txt
 
 * __Packets__
-  * /tmp/devPackets.html
-  * /tmp/devAPDU.html
-  * /tmp/hostPackets.html
-  * /tmp/hostAPDU.html
+	* /data/local/tmp/devPackets.html
+	* /data/local/tmp/devAPDU.html
+	* /data/local/tmp/hostPackets.html
+	* /data/local/tmp/hostAPDU.html

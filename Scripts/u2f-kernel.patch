@@ -1,0 +1,137 @@
+diff --git a/drivers/usb/gadget/android.c b/drivers/usb/gadget/android.c
+index ced63c82ae7..41ac7ac18ca 100644
+--- a/drivers/usb/gadget/android.c
++++ b/drivers/usb/gadget/android.c
+@@ -55,20 +55,21 @@
+ #include "u_ctrl_hsic.c"
+ #include "u_data_hsic.c"
+ #include "u_ctrl_hsuart.c"
+ #include "u_data_hsuart.c"
+ #include "f_ccid.c"
+ #include "f_mtp.c"
+ #include "f_accessory.c"
+ #include "f_hid.h"
+ #include "f_hid_android_keyboard.c"
+ #include "f_hid_android_mouse.c"
++#include "f_hid_android_u2f.c"
+ #include "f_rndis.c"
+ #include "rndis.c"
+ #include "f_qc_ecm.c"
+ #include "f_mbim.c"
+ #include "f_qc_rndis.c"
+ #include "u_data_ipa.c"
+ #include "u_bam_data.c"
+ #include "f_ecm.c"
+ #include "u_ether.c"
+ #include "u_qc_ether.c"
+@@ -2855,21 +2856,21 @@ static int uasp_function_bind_config(struct android_usb_function *f,
+ 
+ static struct android_usb_function uasp_function = {
+ 	.name		= "uasp",
+ 	.init		= uasp_function_init,
+ 	.cleanup	= uasp_function_cleanup,
+ 	.bind_config	= uasp_function_bind_config,
+ };
+ 
+ static int hid_function_init(struct android_usb_function *f, struct usb_composite_dev *cdev)
+ {
+-	return ghid_setup(cdev->gadget, 2);
++	return ghid_setup(cdev->gadget, 3);
+ }
+ 
+ static void hid_function_cleanup(struct android_usb_function *f)
+ {
+ 	ghid_cleanup();
+ }
+ 
+ static int hid_function_bind_config(struct android_usb_function *f, struct usb_configuration *c)
+ {
+ 	int ret;
+@@ -2878,20 +2879,26 @@ static int hid_function_bind_config(struct android_usb_function *f, struct usb_c
+ 	if (ret) {
+ 		pr_info("%s: hid_function_bind_config keyboard failed: %d\n", __func__, ret);
+ 		return ret;
+ 	}
+ 	printk(KERN_INFO "hid mouse\n");
+ 	ret = hidg_bind_config(c, &ghid_device_android_mouse, 1);
+ 	if (ret) {
+ 		pr_info("%s: hid_function_bind_config mouse failed: %d\n", __func__, ret);
+ 		return ret;
+ 	}
++	printk(KERN_INFO "hid u2f\n");
++	ret = hidg_bind_config(c, &ghid_device_android_u2f, 2);
++	if (ret) {
++		pr_info("%s: hid_function_bind_config u2f failed: %d\n", __func__, ret);
++		return ret;
++	}
+ 	return 0;
+ }
+ 
+ static struct android_usb_function hid_function = {
+ 	.name		= "hid",
+ 	.init		= hid_function_init,
+ 	.cleanup	= hid_function_cleanup,
+ 	.bind_config	= hid_function_bind_config,
+ };
+ 
+diff --git a/drivers/usb/gadget/f_hid.c b/drivers/usb/gadget/f_hid.c
+index 155d9fb3a08..117bc00feac 100644
+--- a/drivers/usb/gadget/f_hid.c
++++ b/drivers/usb/gadget/f_hid.c
+@@ -57,21 +57,21 @@ struct f_hidg {
+ 	int				minor;
+ 	struct cdev			cdev;
+ 	struct usb_function		func;
+ 
+ 	struct usb_ep			*in_ep;
+ 	struct usb_ep			*out_ep;
+ };
+ 
+ /* Hacky device list to fix f_hidg_write being called after device destroyed.
+    It covers only most common race conditions, there will be rare crashes anyway. */
+-enum { HACKY_DEVICE_LIST_SIZE = 4 };
++enum { HACKY_DEVICE_LIST_SIZE = 6 };
+ static struct f_hidg *hacky_device_list[HACKY_DEVICE_LIST_SIZE];
+ static void hacky_device_list_add(struct f_hidg *hidg)
+ {
+ 	int i;
+ 	for (i = 0; i < HACKY_DEVICE_LIST_SIZE; i++) {
+ 		if (!hacky_device_list[i]) {
+ 			hacky_device_list[i] = hidg;
+ 			return;
+ 		}
+ 	}
+diff --git a/drivers/usb/gadget/f_hid_android_u2f.c b/drivers/usb/gadget/f_hid_android_u2f.c
+new file mode 100644
+index 00000000000..950c244e032
+--- /dev/null
++++ b/drivers/usb/gadget/f_hid_android_u2f.c
+@@ -0,0 +1,28 @@
++#include <linux/platform_device.h>
++#include <linux/usb/g_hid.h>
++
++/* HID descriptor for a mouse */
++static struct hidg_func_descriptor ghid_device_android_u2f = {
++	.subclass      = 0x01, /* Boot Interface Subclass */
++	.protocol      = 0x00, /* Raw HID */
++	.report_length = 512,
++	.report_desc_length	= 34,
++	.report_desc = {
++		0x06, 0xD0, 0xF1, // Usage Page (FIDO Usage Page)
++		0x09, 0x01,       // Usage (FIDO Usage U2F HID)
++		0xA1, 0x01,       // Collection (Application)
++		0x09, 0x20,       // Usage (FIDO Usage Data In)
++		0x15, 0x00,       // Logical Minimum (0)
++		0x26, 0xFF, 0x00, // Logical Maximum (255)
++		0x75, 0x08,       // Report Size (8)
++		0x95, 0x40,       // Report Count (HID Input Report Bytes)
++		0x81, 0x02,       // Input (HID Data & HID Absolute & HID Variable)
++		0x09, 0x21,       // Usage (FIDO Usage Data Out)
++		0x15, 0x00,       // Logical Minimum (0)
++		0x26, 0xFF, 0x00, // Logical Maximum (255)
++		0x75, 0x08,       // Report Size (8)
++		0x95, 0x40,       // Report Count (HID Output Report Bytes)
++		0x91, 0x02,       // Output (HID Data & HID Absolute & HID Variable)
++		0xC0              // End Collection
++	}
++};
