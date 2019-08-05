@@ -133,7 +133,7 @@ vector<uint8_t>& getBuffer()
 		else if (errno != EAGAIN && errno != EWOULDBLOCK) //Expect read would block
 		{
 			ERR();
-#if DEBUG_MSGS
+#ifdef DEBUG_MSGS
 			cerr << "Unknown stream error: " << errno << endl;
 #endif
 			break;
