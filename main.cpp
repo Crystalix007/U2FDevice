@@ -22,7 +22,7 @@ void terminateHandler()
 
 int main(int argc, char **argv) {
 #ifdef DEBUG_MSGS
-	std::set_terminate(terminate_handler);
+	std::set_terminate(terminateHandler);
 #endif
 	int retCode = handleTransactions(argv[0], argc == 2 ? argv[1] : STORAGE_PREFIX);
 
