@@ -20,8 +20,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "Streams.hpp"
 #include <iostream>
 #include <unistd.h>
-//#include <sys/ioctl.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -31,6 +29,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "u2f.hpp"
 #include "Macro.hpp"
 #include "U2FDevice.hpp"
+#include <array>
 
 using namespace std;
 
