@@ -38,7 +38,9 @@ public:
 
 	public:
 		static void init(const std::string &dirPrefix = "");
+		static void init(std::istream &inputStream);
 		static void save();
+		static void save(std::ostream &outputStream);
 		static std::map<KeyHandle, AppParam> appParams;
 		static std::map<KeyHandle, PrivKey>  privKeys;
 		static std::map<KeyHandle, PubKey>   pubKeys;

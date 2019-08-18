@@ -34,10 +34,16 @@ void Storage::init(const string &dirPrefix)
 {
 	Storage::filename = dirPrefix + "U2F_Priv_Keys.txt";
 	ifstream file{ Storage::filename };
+
+	init(file);
+}
+
+void Storage::init(std::istream &inputStream)
+{
 	string line;
 	size_t lineNumber = 0;
 
-	while (getline(file, line))
+	while (getline(inputStream, line))
 	{
 		auto strLineNum = to_string(lineNumber);
 		stringstream ss{ line };
@@ -52,7 +58,7 @@ void Storage::init(const string &dirPrefix)
 
 		if (!endP)
 			throw runtime_error{ "Invalid keyhandle format on line " + strLineNum };
-		
+
 		endP = nullptr;
 		Storage::KeyCount keyC{ static_cast<Storage::KeyCount>(strtoull(keyCStr.c_str(), &endP, 10)) };
 
@@ -80,7 +86,11 @@ void Storage::init(const string &dirPrefix)
 void Storage::save()
 {
 	ofstream file{ Storage::filename };
+	Storage::save(file);
+}
 
+void Storage::save(ostream &outputStream)
+{
 	for (auto &keypair : Storage::appParams)
 	{
 		const auto& keyID    = keypair.first;
@@ -89,21 +99,21 @@ void Storage::save()
 		const auto& pubKey   = Storage::pubKeys[keyID];
 		const auto& keyCount = Storage::keyCounts[keyID];
 
-		file << keyID;
-		file << ' ';
+		outputStream << keyID;
+		outputStream << ' ';
 
 		string appPStr{};
 		b64encode(appParam, appPStr);
-		file << appPStr << ' ';
+		outputStream << appPStr << ' ';
 
 		string privKStr{};
 		b64encode(privKey, privKStr);
-		file << privKStr << ' ';
+		outputStream << privKStr << ' ';
 
 		string pubKStr{};
 		b64encode(pubKey, pubKStr);
-		file << pubKStr << ' ';
+		outputStream << pubKStr << ' ';
 
-		file << keyCount << endl;
+		outputStream << keyCount << endl;
 	}
 }
