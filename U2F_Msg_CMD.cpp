@@ -35,7 +35,7 @@ uint32_t U2F_Msg_CMD::getLe(const uint32_t byteCount, vector<uint8_t> bytes)
 	if (byteCount != 0)
 	{
 		//Le must be length of data in bytes
-		
+
 		switch (byteCount)
 		{
 			case 1:
@@ -60,24 +60,24 @@ uint32_t U2F_Msg_CMD::getLe(const uint32_t byteCount, vector<uint8_t> bytes)
 		return 0;
 }
 
-shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
+shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const U2FMessage& uMsg)
 {
-	if (uMsg->cmd != U2FHID_MSG)
+	if (uMsg.cmd != U2FHID_MSG)
 		throw runtime_error{ "Failed to get U2F Msg uMsg" };
-	else if (uMsg->data.size() < 4)
+	else if (uMsg.data.size() < 4)
 	{
-		U2F_Msg_CMD::error(uMsg->cid, APDU_STATUS::SW_WRONG_LENGTH);
+		U2F_Msg_CMD::error(uMsg.cid, APDU_STATUS::SW_WRONG_LENGTH);
 		throw runtime_error{ "Msg data is incorrect size" };
 	}
 
 	U2F_Msg_CMD cmd;
-	auto &dat = uMsg->data;
+	auto &dat = uMsg.data;
 
 	cmd.cla = dat[0];
 
 	if (cmd.cla != 0)
 	{
-		U2F_Msg_CMD::error(uMsg->cid, APDU_STATUS::SW_COMMAND_NOT_ALLOWED);
+		U2F_Msg_CMD::error(uMsg.cid, APDU_STATUS::SW_COMMAND_NOT_ALLOWED);
 		throw runtime_error{ "Invalid CLA value in U2F Message" };
 	}
 
@@ -93,7 +93,7 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 	{
 		if (cBCount == 0)
 		{
-			U2F_Msg_CMD::error(uMsg->cid, APDU_STATUS::SW_WRONG_LENGTH);
+			U2F_Msg_CMD::error(uMsg.cid, APDU_STATUS::SW_WRONG_LENGTH);
 			throw runtime_error{ "Invalid command - should have attached data" };
 		}
 
@@ -116,7 +116,7 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 		}
 		catch (runtime_error& ignored)
 		{
-			U2F_Msg_CMD::error(uMsg->cid, APDU_STATUS::SW_WRONG_LENGTH);
+			U2F_Msg_CMD::error(uMsg.cid, APDU_STATUS::SW_WRONG_LENGTH);
 			throw;
 		}
 	}
@@ -131,7 +131,7 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 		}
 		catch (runtime_error& ignored)
 		{
-			U2F_Msg_CMD::error(uMsg->cid, APDU_STATUS::SW_WRONG_LENGTH);
+			U2F_Msg_CMD::error(uMsg.cid, APDU_STATUS::SW_WRONG_LENGTH);
 			throw;
 		}
 	}
@@ -161,7 +161,7 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 			"\t\t\t\t\t<td>%u</td>\n"
 			"\t\t\t\t\t<td>%3u</td>\n"
 			"\t\t\t\t\t<td class=\"data\">", cmd.cla, cmd.ins, cmd.p1, cmd.p2, cmd.lc);
-	
+
 	for (auto b : dBytes)
 		fprintf(hAS, "%3u ", b);
 
@@ -190,7 +190,7 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const shared_ptr<U2FMessage> uMsg)
 	}
 	catch (const APDU_STATUS e)
 	{
-		U2F_Msg_CMD::error(uMsg->cid, e);
+		U2F_Msg_CMD::error(uMsg.cid, e);
 		throw runtime_error{ "APDU construction error" };
 		return {};
 	}

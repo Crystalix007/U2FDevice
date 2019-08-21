@@ -42,8 +42,8 @@ class Channel
 
 	public:
 		Channel(const uint32_t channelID);
-		void handle(const std::shared_ptr<U2FMessage> uMsg);
-		
+		void handle(const U2FMessage& uMsg);
+
 		uint32_t getCID() const;
 		void init(const ChannelInitState newInitState);
 		void lock(const ChannelLockedState newLockedState);

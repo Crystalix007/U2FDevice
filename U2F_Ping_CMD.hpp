@@ -27,6 +27,6 @@ struct U2F_Ping_CMD : U2F_CMD
 	std::vector<uint8_t> nonce;
 
 	public:
-		U2F_Ping_CMD(const std::shared_ptr<U2FMessage> uMsg);
+		U2F_Ping_CMD(const U2FMessage& uMsg);
 		virtual void respond(const uint32_t channelID) const override;
 };

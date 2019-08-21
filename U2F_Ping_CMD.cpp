@@ -21,10 +21,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using namespace std;
 
-U2F_Ping_CMD::U2F_Ping_CMD(const shared_ptr<U2FMessage> uMsg)
-	: nonce{ uMsg->data }
+U2F_Ping_CMD::U2F_Ping_CMD(const U2FMessage& uMsg)
+	: nonce{ uMsg.data }
 {
-	if (uMsg->cmd != U2FHID_PING)
+	if (uMsg.cmd != U2FHID_PING)
 		throw runtime_error{ "Failed to get U2F ping message" };
 }
 

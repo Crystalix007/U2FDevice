@@ -26,11 +26,12 @@ class Controller
 	protected:
 		std::map<uint32_t, Channel>               channels;
 		uint32_t                                  currChannel;
-		std::chrono::system_clock::time_point     lastMessage; 
+		std::chrono::system_clock::time_point     lastMessage;
 
 	public:
 		Controller(const uint32_t startChannel = 1);
 
 		void handleTransaction();
+		void handleTransaction(const U2FMessage& msg);
 		uint32_t nextChannel();
 };

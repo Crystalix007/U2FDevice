@@ -30,26 +30,31 @@ Controller::Controller(const uint32_t startChannel)
 
 void Controller::handleTransaction()
 {
+	auto msg = U2FMessage::readNonBlock();
+
+	if (!msg)
+		return;
+
+	handleTransaction(*msg);
+}
+
+void Controller::handleTransaction(const U2FMessage& msg)
+{
 	try
 	{
 		if (channels.size() != 0 && chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - lastMessage) < chrono::seconds(5))
 			toggleACTLED();
 		else
 			enableACTLED(false);
-		}
+	}
 	catch (runtime_error& ignored)
 	{}
 
-	auto msg = U2FMessage::readNonBlock();
-
-	if (!msg)
-		return;
-	
 	lastMessage = chrono::system_clock::now();
 
-	auto opChannel = msg->cid;
+	auto opChannel = msg.cid;
 
-	if (msg->cmd == U2FHID_INIT)
+	if (msg.cmd == U2FHID_INIT)
 	{
 		opChannel = nextChannel();
 		auto channel = Channel{ opChannel };
@@ -66,7 +71,7 @@ void Controller::handleTransaction()
 
 #ifdef DEBUG_MSGS
 	clog << "Message:" << endl;
-	clog << "cid: " << msg->cid << ", cmd: " << static_cast<unsigned int>(msg->cmd) << endl;
+	clog << "cid: " << msg.cid << ", cmd: " << static_cast<unsigned int>(msg.cmd) << endl;
 #endif
 
 	channels.at(opChannel).handle(msg);

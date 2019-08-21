@@ -33,11 +33,11 @@ uint32_t Channel::getCID() const
 	return cid;
 }
 
-void Channel::handle(const shared_ptr<U2FMessage> uMsg)
+void Channel::handle(const U2FMessage& uMsg)
 {
-	if (uMsg->cmd == U2FHID_INIT)
+	if (uMsg.cmd == U2FHID_INIT)
 		this->initState = ChannelInitState::Initialised;
-	else if (uMsg->cid != this->cid)
+	else if (uMsg.cid != this->cid)
 		throw runtime_error{ "CID of request invalid for this channel" };
 
 	if (this->initState != ChannelInitState::Initialised)
