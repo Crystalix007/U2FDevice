@@ -17,16 +17,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #pragma once
-#include <memory>
 #include "U2FMessage.hpp"
+#include <memory>
 
-struct U2F_CMD
-{
-	protected:
-		U2F_CMD() = default;
+struct U2F_CMD {
+protected:
+	U2F_CMD() = default;
 
-	public:
-		virtual ~U2F_CMD() = default;
-		static std::shared_ptr<U2F_CMD> get(const U2FMessage& uMsg);
-		virtual void respond(const uint32_t channelID) const = 0;
-}; //For polymorphic type casting
+public:
+	virtual ~U2F_CMD() = default;
+	static std::shared_ptr<U2F_CMD> get(const U2FMessage& uMsg);
+	virtual void respond(const uint32_t channelID) const = 0;
+}; // For polymorphic type casting

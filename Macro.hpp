@@ -17,7 +17,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #pragma once
-#include <unistd.h>
 #include <string>
+#include <unistd.h>
 
-#define ERR() if (errno != 0) perror((string{ "(" } + __FILE__ + ":" + to_string(__LINE__) + ")" + " "  + __PRETTY_FUNCTION__).c_str()), errno = 0
+#define ERR()                                                                                      \
+	if (errno != 0)                                                                                \
+	perror(                                                                                        \
+	    (string{ "(" } + __FILE__ + ":" + to_string(__LINE__) + ")" + " " + __PRETTY_FUNCTION__)   \
+	        .c_str()),                                                                             \
+	    errno = 0

@@ -24,4 +24,3 @@ extern volatile bool contProc;
 bool initialiseLights(const std::string& prog);
 bool deinitialiseLights(const std::string& prog);
 int handleTransactions(const std::string& prog, const std::string& privKeyDir);
-

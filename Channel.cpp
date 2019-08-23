@@ -17,24 +17,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "Channel.hpp"
-#include <stdexcept>
-#include "u2f.hpp"
 #include "U2F_CMD.hpp"
+#include "u2f.hpp"
 #include <iostream>
+#include <stdexcept>
 
 using namespace std;
 
 Channel::Channel(const uint32_t channelID)
-	: cid{ channelID }, initState{ ChannelInitState::Unitialised }, lockedState{ ChannelLockedState::Unlocked }
-{}
+    : cid{ channelID }, initState{ ChannelInitState::Unitialised }, lockedState{
+	      ChannelLockedState::Unlocked
+      } {}
 
-uint32_t Channel::getCID() const
-{
+uint32_t Channel::getCID() const {
 	return cid;
 }
 
-void Channel::handle(const U2FMessage& uMsg)
-{
+void Channel::handle(const U2FMessage& uMsg) {
 	if (uMsg.cmd == U2FHID_INIT)
 		this->initState = ChannelInitState::Initialised;
 	else if (uMsg.cid != this->cid)
@@ -51,12 +50,10 @@ void Channel::handle(const U2FMessage& uMsg)
 		return cmd->respond(this->cid);
 }
 
-void Channel::init(const ChannelInitState newInitState)
-{
+void Channel::init(const ChannelInitState newInitState) {
 	this->initState = newInitState;
 }
 
-void Channel::lock(const ChannelLockedState newLockedState)
-{
+void Channel::lock(const ChannelLockedState newLockedState) {
 	this->lockedState = newLockedState;
 }

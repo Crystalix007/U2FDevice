@@ -17,19 +17,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "Controller.hpp"
-#include "u2f.hpp"
-#include <iostream>
 #include "IO.hpp"
 #include "LED.hpp"
+#include "u2f.hpp"
+#include <iostream>
 
 using namespace std;
 
-Controller::Controller(const uint32_t startChannel)
-	: channels{}, currChannel{ startChannel }
-{}
+Controller::Controller(const uint32_t startChannel) : channels{}, currChannel{ startChannel } {}
 
-void Controller::handleTransaction()
-{
+void Controller::handleTransaction() {
 	auto msg = U2FMessage::readNonBlock();
 
 	if (!msg)
@@ -38,33 +35,28 @@ void Controller::handleTransaction()
 	handleTransaction(*msg);
 }
 
-void Controller::handleTransaction(const U2FMessage& msg)
-{
-	try
-	{
-		if (channels.size() != 0 && chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - lastMessage) < chrono::seconds(5))
+void Controller::handleTransaction(const U2FMessage& msg) {
+	try {
+		if (channels.size() != 0 &&
+		    chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - lastMessage) <
+		        chrono::seconds(5))
 			toggleACTLED();
 		else
 			enableACTLED(false);
+	} catch (runtime_error& ignored) {
 	}
-	catch (runtime_error& ignored)
-	{}
 
 	lastMessage = chrono::system_clock::now();
 
 	auto opChannel = msg.cid;
 
-	if (msg.cmd == U2FHID_INIT)
-	{
+	if (msg.cmd == U2FHID_INIT) {
 		opChannel = nextChannel();
 		auto channel = Channel{ opChannel };
 
-		try
-		{
-			channels.emplace(opChannel, channel); //In case of wrap-around replace existing one
-		}
-		catch (...)
-		{
+		try {
+			channels.emplace(opChannel, channel); // In case of wrap-around replace existing one
+		} catch (...) {
 			channels.insert(make_pair(opChannel, channel));
 		}
 	}
@@ -77,8 +69,7 @@ void Controller::handleTransaction(const U2FMessage& msg)
 	channels.at(opChannel).handle(msg);
 }
 
-uint32_t Controller::nextChannel()
-{
+uint32_t Controller::nextChannel() {
 	do
 		currChannel++;
 	while (currChannel == 0xFFFFFFFF || currChannel == 0);

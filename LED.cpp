@@ -24,19 +24,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using namespace std;
 
-bool& ledState()
-{
+bool& ledState() {
 	static bool state = true;
 	return state;
 }
 
-bool getLEDState()
-{
+bool getLEDState() {
 	return ledState();
 }
 
-void disableACTTrigger([[maybe_unused]] bool nowDisabled)
-{
+void disableACTTrigger([[maybe_unused]] bool nowDisabled) {
 #ifdef LEDS
 	ofstream trigFile{ "/sys/class/leds/led0/trigger", ofstream::out | ofstream::trunc };
 
@@ -48,8 +45,7 @@ void disableACTTrigger([[maybe_unused]] bool nowDisabled)
 #endif
 }
 
-void enableACTLED([[maybe_unused]] bool nowOn)
-{
+void enableACTLED([[maybe_unused]] bool nowOn) {
 #ifdef LEDS
 	if (nowOn == getLEDState())
 		return;
@@ -66,7 +62,6 @@ void enableACTLED([[maybe_unused]] bool nowOn)
 #endif
 }
 
-void toggleACTLED()
-{
+void toggleACTLED() {
 	enableACTLED(!getLEDState());
 }

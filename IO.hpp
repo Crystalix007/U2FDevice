@@ -24,9 +24,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 extern std::string binaryDirectory;
 extern std::string cacheDirectory;
 
-//Returns either the number of bytes specified,
-//or returns empty vector without discarding bytes from HID stream
+// Returns either the number of bytes specified,
+// or returns empty vector without discarding bytes from HID stream
 std::vector<uint8_t> readNonBlock(const size_t count);
 
-//Blocking write to HID stream - shouldn't block for too long
+// Blocking write to HID stream - shouldn't block for too long
 void write(const std::vector<uint8_t>& data);

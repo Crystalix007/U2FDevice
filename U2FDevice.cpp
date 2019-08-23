@@ -17,11 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "Architecture.hpp"
-#include <iostream>
-#include "Storage.hpp"
 #include "Controller.hpp"
 #include "LED.hpp"
+#include "Storage.hpp"
 #include <csignal>
+#include <iostream>
 #include <unistd.h>
 
 using namespace std;
@@ -31,13 +31,10 @@ void signalCallback(int signum);
 volatile bool contProc = true;
 
 bool initialiseLights(const string& prog) {
-	try
-	{
+	try {
 		disableACTTrigger(true);
 		enableACTLED(false);
-	}
-	catch (runtime_error &e)
-	{
+	} catch (runtime_error& e) {
 		cerr << e.what() << endl;
 
 		return false;
@@ -46,20 +43,15 @@ bool initialiseLights(const string& prog) {
 	return true;
 }
 
-int handleTransactions(const string& prog, const string& privKeyDir)
-{
+int handleTransactions(const string& prog, const string& privKeyDir) {
 	signal(SIGINT, signalCallback);
 	Storage::init(privKeyDir);
 	Controller ch{ 0xF1D00000 };
 
-	while (contProc)
-	{
-		try
-		{
+	while (contProc) {
+		try {
 			ch.handleTransaction();
-		}
-		catch (const runtime_error &e)
-		{
+		} catch (const runtime_error& e) {
 			cerr << e.what() << endl;
 
 			raise(SIGINT);
@@ -73,13 +65,10 @@ int handleTransactions(const string& prog, const string& privKeyDir)
 }
 
 bool deinitialiseLights(const string& prog) {
-	try
-	{
+	try {
 		disableACTTrigger(false);
 		enableACTLED(true);
-	}
-	catch (runtime_error &e)
-	{
+	} catch (runtime_error& e) {
 		cerr << e.what() << endl;
 
 		return false;
@@ -88,8 +77,7 @@ bool deinitialiseLights(const string& prog) {
 	return true;
 }
 
-void signalCallback([[maybe_unused]] int signum)
-{
+void signalCallback([[maybe_unused]] int signum) {
 	contProc = false;
 	clog << "\nClosing" << endl;
 }

@@ -17,50 +17,49 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "Storage.hpp"
-#include <exception>
-#include <sstream>
 #include "Base64.tpp"
+#include <exception>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
 std::string Storage::filename{};
 std::map<Storage::KeyHandle, Storage::AppParam> Storage::appParams{};
-std::map<Storage::KeyHandle, Storage::PrivKey>  Storage::privKeys{};
-std::map<Storage::KeyHandle, Storage::PubKey>   Storage::pubKeys{};
+std::map<Storage::KeyHandle, Storage::PrivKey> Storage::privKeys{};
+std::map<Storage::KeyHandle, Storage::PubKey> Storage::pubKeys{};
 std::map<Storage::KeyHandle, Storage::KeyCount> Storage::keyCounts{};
 
-void Storage::init(const string &dirPrefix)
-{
+void Storage::init(const string& dirPrefix) {
 	Storage::filename = dirPrefix + "U2F_Priv_Keys.txt";
 	ifstream file{ Storage::filename };
 
 	init(file);
 }
 
-void Storage::init(std::istream &inputStream)
-{
+void Storage::init(std::istream& inputStream) {
 	string line;
 	size_t lineNumber = 0;
 
-	while (getline(inputStream, line))
-	{
+	while (getline(inputStream, line)) {
 		auto strLineNum = to_string(lineNumber);
 		stringstream ss{ line };
-		string keyHStr,   appStr,   privStr,   pubStr,   keyCStr;
-		ss >>  keyHStr >> appStr >> privStr >> pubStr >> keyCStr;
+		string keyHStr, appStr, privStr, pubStr, keyCStr;
+		ss >> keyHStr >> appStr >> privStr >> pubStr >> keyCStr;
 
 		if (!ss)
 			throw runtime_error{ string{ "Invalid syntax of line " } + strLineNum };
 
-		char *endP = nullptr;
-		Storage::KeyHandle keyH{ static_cast<Storage::KeyHandle>(strtoull(keyHStr.c_str(), &endP, 10)) };
+		char* endP = nullptr;
+		Storage::KeyHandle keyH{ static_cast<Storage::KeyHandle>(
+			strtoull(keyHStr.c_str(), &endP, 10)) };
 
 		if (!endP)
 			throw runtime_error{ "Invalid keyhandle format on line " + strLineNum };
 
 		endP = nullptr;
-		Storage::KeyCount keyC{ static_cast<Storage::KeyCount>(strtoull(keyCStr.c_str(), &endP, 10)) };
+		Storage::KeyCount keyC{ static_cast<Storage::KeyCount>(
+			strtoull(keyCStr.c_str(), &endP, 10)) };
 
 		if (!endP)
 			throw runtime_error{ "Invalid key count format on line " + strLineNum };
@@ -68,35 +67,32 @@ void Storage::init(std::istream &inputStream)
 		Storage::AppParam appParam{};
 		b64decode(appStr, appParam);
 
-		Storage::PrivKey  privKey{};
+		Storage::PrivKey privKey{};
 		b64decode(privStr, privKey);
 
-		Storage::PubKey   pubKey{};
+		Storage::PubKey pubKey{};
 		b64decode(pubStr, pubKey);
 
 		Storage::appParams[keyH] = appParam;
-		Storage::privKeys[keyH]  = privKey;
-		Storage::pubKeys[keyH]   = pubKey;
+		Storage::privKeys[keyH] = privKey;
+		Storage::pubKeys[keyH] = pubKey;
 		Storage::keyCounts[keyH] = keyC;
 
 		lineNumber++;
 	}
 }
 
-void Storage::save()
-{
+void Storage::save() {
 	ofstream file{ Storage::filename };
 	Storage::save(file);
 }
 
-void Storage::save(ostream &outputStream)
-{
-	for (auto &keypair : Storage::appParams)
-	{
-		const auto& keyID    = keypair.first;
+void Storage::save(ostream& outputStream) {
+	for (auto& keypair : Storage::appParams) {
+		const auto& keyID = keypair.first;
 		const auto& appParam = keypair.second;
-		const auto& privKey  = Storage::privKeys[keyID];
-		const auto& pubKey   = Storage::pubKeys[keyID];
+		const auto& privKey = Storage::privKeys[keyID];
+		const auto& pubKey = Storage::pubKeys[keyID];
 		const auto& keyCount = Storage::keyCounts[keyID];
 
 		outputStream << keyID;
