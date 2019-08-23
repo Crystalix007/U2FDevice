@@ -17,25 +17,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "U2F_Version_APDU.hpp"
-#include <iostream>
+#include "APDU.hpp"
+#include "Field.hpp"
 #include "U2FMessage.hpp"
 #include "u2f.hpp"
-#include "Field.hpp"
-#include "APDU.hpp"
+#include <iostream>
 
 using namespace std;
 
-U2F_Version_APDU::U2F_Version_APDU(const U2F_Msg_CMD &msg, const std::vector<uint8_t> &data)
-{
-	//Don't actually respond yet unless invalid
+U2F_Version_APDU::U2F_Version_APDU(const U2F_Msg_CMD& msg, const std::vector<uint8_t>& data) {
+	// Don't actually respond yet unless invalid
 	if (msg.p1 != 0 || msg.p2 != 0)
 		throw APDU_STATUS::SW_INS_NOT_SUPPORTED;
 	else if (data.size() != 0)
 		throw APDU_STATUS::SW_WRONG_LENGTH;
 }
 
-void U2F_Version_APDU::respond(const uint32_t channelID) const
-{
+void U2F_Version_APDU::respond(const uint32_t channelID) const {
 	char ver[]{ 'U', '2', 'F', '_', 'V', '2' };
 	U2FMessage m{};
 

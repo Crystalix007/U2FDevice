@@ -17,20 +17,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #pragma once
-#include <map>
-#include <chrono>
 #include "Channel.hpp"
+#include <chrono>
+#include <map>
 
-class Controller
-{
-	protected:
-		std::map<uint32_t, Channel>               channels;
-		uint32_t                                  currChannel;
-		std::chrono::system_clock::time_point     lastMessage; 
+class Controller {
+protected:
+	std::map<uint32_t, Channel> channels;
+	uint32_t currChannel;
+	std::chrono::system_clock::time_point lastMessage;
 
-	public:
-		Controller(const uint32_t startChannel = 1);
+public:
+	Controller(const uint32_t startChannel = 1);
 
-		void handleTransaction();
-		uint32_t nextChannel();
+	void handleTransaction();
+	uint32_t nextChannel();
 };

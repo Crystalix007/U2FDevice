@@ -17,30 +17,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #pragma once
-#include <map>
 #include <array>
-#include <string>
 #include <fstream>
+#include <map>
+#include <string>
 
-class Storage
-{
+class Storage {
 public:
 	using KeyHandle = uint32_t;
-	using KeyCount  = uint32_t;
-	using AppParam  = std::array<uint8_t, 32>;
-	using PrivKey   = std::array<uint8_t, 32>;
-	using PubKey    = std::array<uint8_t, 65>;
+	using KeyCount = uint32_t;
+	using AppParam = std::array<uint8_t, 32>;
+	using PrivKey = std::array<uint8_t, 32>;
+	using PubKey = std::array<uint8_t, 65>;
 
-	protected:
-		Storage() = default;
+protected:
+	Storage() = default;
 
-		static std::string filename;
+	static std::string filename;
 
-	public:
-		static void init(const std::string &dirPrefix = "");
-		static void save();
-		static std::map<KeyHandle, AppParam> appParams;
-		static std::map<KeyHandle, PrivKey>  privKeys;
-		static std::map<KeyHandle, PubKey>   pubKeys;
-		static std::map<KeyHandle, KeyCount> keyCounts;
+public:
+	static void init(const std::string& dirPrefix = "");
+	static void save();
+	static std::map<KeyHandle, AppParam> appParams;
+	static std::map<KeyHandle, PrivKey> privKeys;
+	static std::map<KeyHandle, PubKey> pubKeys;
+	static std::map<KeyHandle, KeyCount> keyCounts;
 };

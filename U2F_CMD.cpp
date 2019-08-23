@@ -17,19 +17,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "U2F_CMD.hpp"
-#include "u2f.hpp"
-#include "U2F_Msg_CMD.hpp"
 #include "U2F_Init_CMD.hpp"
+#include "U2F_Msg_CMD.hpp"
 #include "U2F_Ping_CMD.hpp"
+#include "u2f.hpp"
 
 using namespace std;
 
-shared_ptr<U2F_CMD> U2F_CMD::get(const shared_ptr<U2FMessage> uMsg)
-{
-	try
-	{
-		switch (uMsg->cmd)
-		{
+shared_ptr<U2F_CMD> U2F_CMD::get(const shared_ptr<U2FMessage> uMsg) {
+	try {
+		switch (uMsg->cmd) {
 			case U2FHID_PING:
 				return make_shared<U2F_Ping_CMD>(uMsg);
 			case U2FHID_MSG:
@@ -40,9 +37,7 @@ shared_ptr<U2F_CMD> U2F_CMD::get(const shared_ptr<U2FMessage> uMsg)
 				U2FMessage::error(uMsg->cid, ERR_INVALID_CMD);
 				return {};
 		}
-	}
-	catch (runtime_error& ignored)
-	{
+	} catch (runtime_error& ignored) {
 		U2FMessage::error(uMsg->cid, ERR_OTHER);
 		return {};
 	}

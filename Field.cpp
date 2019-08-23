@@ -20,7 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 using namespace std;
 
-vector<uint8_t> beEncode(const uint8_t* val, const size_t byteCount)
-{
-	return { reverse_iterator<const uint8_t *>(val + byteCount), reverse_iterator<const uint8_t *>(val) };
+vector<uint8_t> beEncode(const uint8_t* val, const size_t byteCount) {
+	return { reverse_iterator<const uint8_t*>(val + byteCount),
+		     reverse_iterator<const uint8_t*>(val) };
 }

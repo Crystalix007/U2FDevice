@@ -17,11 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #pragma once
+#include "Architecture.hpp"
 #include <cstdio>
 #include <memory>
-#include "Architecture.hpp"
 
-std::shared_ptr<int>  getHostDescriptor();
+std::shared_ptr<int> getHostDescriptor();
 
 #ifdef DEBUG_STREAMS
 std::shared_ptr<FILE> getComHostStream();
