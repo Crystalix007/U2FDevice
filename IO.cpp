@@ -23,25 +23,35 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <time.h>
+#include <ctime>
 #include <chrono>
 #include <ratio>
+#include <array>
+#include <string>
+#include <stdexcept>
+#include <memory>
+#include <cstdio>
+#include <android/log.h>
 #include "u2f.hpp"
 #include "Macro.hpp"
 #include "U2FDevice.hpp"
-#include <array>
 
 using namespace std;
 
-bool bytesAvailable(const size_t count);
+bool bytesAvailable(size_t count);
 vector<uint8_t>& getBuffer();
+
+string binaryDirectory{};
+string cacheDirectory{ DEBUG_STREAMS };
+
+// Thanks to https://stackoverflow.com/a/478960
+vector<uint8_t> execOutput(const string &cmd);
+void execInput(const string &cmd, const vector<uint8_t> &stdinData);
 
 vector<uint8_t> readNonBlock(const size_t count)
 {
 	if (!bytesAvailable(count))
-	{
 		return vector<uint8_t>{};
-	}
 
 	auto &buffer = getBuffer();
 	auto buffStart = buffer.begin(), buffEnd = buffer.begin() + count;
@@ -53,33 +63,20 @@ vector<uint8_t> readNonBlock(const size_t count)
 	return bytes;
 }
 
-void write(const uint8_t* bytes, const size_t count)
+void write(const vector<uint8_t> &bytes)
 {
-	size_t totalBytes = 0;
-	auto   hostDescriptor = *getHostDescriptor();
-
-	while (totalBytes < count)
-	{
-		auto writtenBytes = write(hostDescriptor, bytes + totalBytes, count - totalBytes);
-
-		if (writtenBytes > 0)
-			totalBytes += writtenBytes;
-		else if (errno != 0 && errno != EAGAIN && errno != EWOULDBLOCK) //Expect file blocking behaviour
-			ERR();
-	}
-
-	errno = 0;
+    __android_log_print(ANDROID_LOG_DEBUG, "U2FAndroid", "Writing %zu bytes", bytes.size());
+	execInput("su -c \"" + binaryDirectory + "/U2FAndroid_Write\"", bytes);
 }
 
 bool bytesAvailable(const size_t count)
 {
 	auto startTime = std::chrono::high_resolution_clock::now();
-	const timespec iterDelay{ 0, 1000 };
+	const timespec iterDelay{ 0, 10000000 };
 	chrono::duration<double, milli> delay{ 0 };
 
-	while (delay.count() < U2FHID_TRANS_TIMEOUT && contProc)
+	while (delay.count() < U2FHID_TRANS_TIMEOUT)
 	{
-		delay = chrono::high_resolution_clock::now() - startTime;
 		if (getBuffer().size() >= count) {
 #ifdef DEBUG_MSGS
 			clog << "Requested " << count << " bytes" << endl;
@@ -87,6 +84,7 @@ bool bytesAvailable(const size_t count)
 			return true;
 		}
 		nanosleep(&iterDelay, nullptr);
+        delay = chrono::high_resolution_clock::now() - startTime;
 	}
 
 #ifdef DEBUG_MSGS
@@ -105,44 +103,45 @@ vector<uint8_t>& bufferVar()
 vector<uint8_t>& getBuffer()
 {
 	auto &buff = bufferVar();
-	array<uint8_t, HID_RPT_SIZE> bytes{};
-	auto hostDescriptor = *getHostDescriptor();
+	vector<uint8_t> bytes = execOutput("su -c \"" + binaryDirectory + "/U2FAndroid_Read\"");
 
-	while (true)
+	if (!bytes.empty())
 	{
-		auto readByteCount = read(hostDescriptor, bytes.data(), HID_RPT_SIZE);
-
-		if (readByteCount > 0 && readByteCount != HID_RPT_SIZE)
-		{
-			//Failed to copy an entire packet in, so log this packet
-#ifdef DEBUG_MSGS
-			cerr << "Only retrieved " << readByteCount << " bytes from expected full packet." << endl;
-#endif
-		}
-
-		if (readByteCount > 0)
-		{
-			copy(bytes.begin(), bytes.begin() + readByteCount, back_inserter(buff));
+		__android_log_print(ANDROID_LOG_DEBUG, "U2FAndroid", "Reading bytes: got %zu", bytes.size());
+		buff.insert(buff.end(), bytes.begin(), bytes.end());
 
 #ifdef DEBUG_STREAMS
-			fwrite(bytes.data(), 1, readByteCount, getComHostStream().get());
+		fwrite(bytes.data(), 1, bytes.size(), getComHostStream().get());
 #endif
-
-		}
-		else if (errno != EAGAIN && errno != EWOULDBLOCK) //Expect read would block
-		{
-			ERR();
-#ifdef DEBUG_MSGS
-			cerr << "Unknown stream error: " << errno << endl;
-#endif
-			break;
-		}
-		else
-		{
-			errno = 0;
-			break; //Escape loop if blocking would occur
-		}
 	}
 
 	return buff;
+}
+
+vector<uint8_t> execOutput(const string &cmd)
+{
+	// NOLINT(hicpp-member-init)
+	array<char, HID_RPT_SIZE> buffer;
+	vector<uint8_t> result{};
+	unique_ptr<FILE, decltype(&pclose)> pipe{ popen(cmd.c_str(), "rb"), pclose };
+
+	if (!pipe)
+		throw std::runtime_error("popen() failed!");
+	while (size_t readBytes = fread(buffer.data(), 1, buffer.size(), pipe.get()))
+		copy(buffer.begin(), buffer.begin() + readBytes, back_inserter(result));
+
+	return result;
+}
+
+void execInput(const string &cmd, const vector<uint8_t> &stdinData)
+{
+	assert(stdinData.size() % HID_RPT_SIZE == 0);
+
+	size_t writtenBytes = 0;
+	unique_ptr<FILE, decltype(&pclose)> pipe{ popen(cmd.c_str(), "wb"), pclose };
+
+	if (!pipe)
+		throw std::runtime_error("popen() failed!");
+	while (writtenBytes < stdinData.size())
+		writtenBytes += fwrite(stdinData.data(), 1, HID_RPT_SIZE, pipe.get());
 }

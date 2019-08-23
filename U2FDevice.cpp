@@ -21,7 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "Storage.hpp"
 #include "Controller.hpp"
 #include "LED.hpp"
-#include <signal.h>
+#include <csignal>
 #include <unistd.h>
 
 using namespace std;
@@ -39,9 +39,6 @@ bool initialiseLights(const string& prog) {
 	catch (runtime_error &e)
 	{
 		cerr << e.what() << endl;
-
-		if (getuid() != 0)
-			cerr << "Try running as root, using \'sudo " << prog << "\'" << endl;
 
 		return false;
 	}
@@ -65,9 +62,6 @@ int handleTransactions(const string& prog, const string& privKeyDir)
 		{
 			cerr << e.what() << endl;
 
-			if (getuid() != 0)
-				cerr << "Try running as root, using \'sudo " << prog << "\'" << endl;
-
 			raise(SIGINT);
 			return EXIT_FAILURE;
 		}
@@ -87,9 +81,6 @@ bool deinitialiseLights(const string& prog) {
 	catch (runtime_error &e)
 	{
 		cerr << e.what() << endl;
-
-		if (getuid() != 0)
-			cerr << "Try running as root, using \'sudo " << prog << "\'" << endl;
 
 		return false;
 	}

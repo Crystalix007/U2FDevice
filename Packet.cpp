@@ -243,7 +243,7 @@ void InitPacket::writePacket()
 	memcpy(this->buf + 5, &bcnth,                1);
 	memcpy(this->buf + 6, &bcntl,                1);
 	memcpy(this->buf + 7, data.data(), data.size());
-	write(this->buf,      sizeof(this->buf));
+	write(vector<uint8_t>{ this->buf, this->buf + sizeof(this->buf) });
 
 #ifdef DEBUG_STREAMS
 	fwrite(this->buf,     1,           sizeof(this->buf), devStream);
@@ -288,7 +288,7 @@ void ContPacket::writePacket()
 
 	memcpy(this->buf + 4, &seq,                  1);
 	memcpy(this->buf + 5, data.data(), data.size());
-	write(this->buf,      HID_RPT_SIZE);
+	write(vector<uint8_t>{this->buf, this->buf + HID_RPT_SIZE });
 
 #ifdef DEBUG_STREAMS
 	fwrite(this->buf,     HID_RPT_SIZE,           1,  devStream);
