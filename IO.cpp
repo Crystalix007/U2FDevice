@@ -71,7 +71,7 @@ void write(const uint8_t* bytes, const size_t count) {
 
 bool bytesAvailable(const size_t count) {
 	auto startTime = std::chrono::high_resolution_clock::now();
-	const timespec iterDelay{ 0, 1000 };
+	const timespec iterDelay{ 0, 10000000 };
 	chrono::duration<double, milli> delay{ 0 };
 
 	while (delay.count() < U2FHID_TRANS_TIMEOUT && contProc) {
