@@ -3,3 +3,5 @@ libcppb64.a
 U2FDevice
 obj/*
 U2F_Priv_Keys.txt
+.ccls-cache
+compile_commands.json
