@@ -1,0 +1,24 @@
+---
+BasedOnStyle: llvm
+IndentWidth: 4
+---
+AccessModifierOffset: -4
+AllowShortFunctionsOnASingleLine: Empty
+AlwaysBreakTemplateDeclarations: Yes
+BreakBeforeBraces: Attach
+BreakConstructorInitializers: BeforeColon
+Cpp11BracedListStyle: false
+ColumnLimit: 100
+DerivePointerAlignment: false
+FixNamespaceComments: true
+IndentCaseLabels: true
+IndentPPDirectives: AfterHash
+Language: Cpp
+PointerAlignment: Left
+SortIncludes: true
+SortUsingDeclarations: true
+Standard: Cpp11
+TabWidth: 4
+UseTab: ForIndentation
+
+...
