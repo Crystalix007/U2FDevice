@@ -33,3 +33,7 @@ void U2F_Ping_CMD::respond(const uint32_t channelID) const {
 	msg.data = nonce;
 	msg.write();
 }
+
+bool U2F_Ping_CMD::modifiesPersistentState() const {
+	return false;
+}

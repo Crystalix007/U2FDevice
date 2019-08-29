@@ -52,3 +52,7 @@ void U2F_Init_CMD::respond(const uint32_t channelID) const {
 
 	msg.write();
 }
+
+bool U2F_Init_CMD::modifiesPersistentState() const {
+	return false;
+}

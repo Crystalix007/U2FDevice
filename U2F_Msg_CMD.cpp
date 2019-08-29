@@ -192,3 +192,10 @@ const map<uint8_t, bool> U2F_Msg_CMD::usesData = { { U2F_REG, true },
 void U2F_Msg_CMD::respond(const uint32_t channelID) const {
 	U2F_Msg_CMD::error(channelID, static_cast<uint16_t>(APDU_STATUS::SW_INS_NOT_SUPPORTED));
 }
+
+bool U2F_Msg_CMD::modifiesPersistentState() const {
+	const auto usesPersistentState = usesData.find(ins);
+
+	// Be conservative for future instructions. Assume that they do modify persist state.
+	return (usesPersistentState == usesData.end()) || usesPersistentState->second;
+}

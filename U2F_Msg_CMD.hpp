@@ -40,5 +40,6 @@ protected:
 public:
 	static std::shared_ptr<U2F_Msg_CMD> generate(const std::shared_ptr<U2FMessage> uMsg);
 	static void error(const uint32_t channelID, const uint16_t errCode);
-	void respond(const uint32_t channelID) const;
+	void respond(const uint32_t channelID) const override;
+	virtual bool modifiesPersistentState() const override;
 };

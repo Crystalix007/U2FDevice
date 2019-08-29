@@ -80,7 +80,7 @@ void Storage::init(const string& dirPrefix) {
 void Storage::save() {
 	ofstream file{ Storage::filename };
 
-	for (auto& keypair : Storage::appParams) {
+	for (const auto& keypair : Storage::appParams) {
 		const auto& keyID = keypair.first;
 		const auto& appParam = keypair.second;
 		const auto& privKey = Storage::privKeys[keyID];

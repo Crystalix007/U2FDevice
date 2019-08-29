@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "Channel.hpp"
+#include "Storage.hpp"
 #include "U2F_CMD.hpp"
 #include "u2f.hpp"
 #include <iostream>
@@ -46,8 +47,12 @@ void Channel::handle(const shared_ptr<U2FMessage> uMsg) {
 
 	auto cmd = U2F_CMD::get(uMsg);
 
-	if (cmd)
-		return cmd->respond(this->cid);
+	if (cmd) {
+		cmd->respond(this->cid);
+
+		if (cmd->modifiesPersistentState())
+			Storage::save();
+	}
 }
 
 void Channel::init(const ChannelInitState newInitState) {
