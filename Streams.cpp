@@ -32,12 +32,11 @@ void closeHTML(FILE* fPtr);
 #endif
 
 shared_ptr<int> getHostDescriptor() {
-	static shared_ptr<int> descriptor{};
-
-	descriptor.reset(new int{ open(HID_DEV, O_RDWR | O_NONBLOCK | O_APPEND) }, [](int* fd) {
-		close(*fd);
-		delete fd;
-	});
+	static shared_ptr<int> descriptor{ new int{ open(HID_DEV, O_RDWR | O_NONBLOCK | O_APPEND) },
+		                               [](int* fd) {
+		                                   close(*fd);
+		                                   delete fd;
+		                               } };
 
 	if (*descriptor == -1)
 		throw runtime_error{ "Descriptor is unavailable" };
