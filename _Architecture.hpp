@@ -17,21 +17,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #pragma once
-#include <cstddef>
-#include <cstdint>
-#include <vector>
 
-#ifdef DEBUG_STREAMS
-extern std::string cacheDirectory;
+#define ARCH_RASPBERRY_PI 1
+#define ARCH_ANDROID 2
+#define ARCHITECTURE ARCH_ANDROID
+
+#if ARCHITECTURE == ARCH_RASPBERRY_PI
+#	define STORAGE_PREFIX "/usr/share/"
+#	define HID_DEV "/dev/hidg0"
+#	define DEBUG_STREAMS "/tmp/"
+//	#define DEBUG_MSGS
+#	define LEDS
+#elif ARCHITECTURE == ARCH_ANDROID
+#	include <string>
+#	define STORAGE_PREFIX "/sdcard/U2F/"
+extern std::string hidDev;
+#	define HID_DEV hidDev.c_str()
+#	define DEBUG_STREAMS "/sdcard/log/"
+#	define HID_SOCKET
+// #define DEBUG_MSGS
 #endif
-
-#ifdef HID_SOCKET
-extern std::string clientSocket;
-#endif
-
-// Returns either the number of bytes specified,
-// or returns empty vector without discarding bytes from HID stream
-std::vector<uint8_t> readNonBlock(const size_t count);
-
-// Blocking write to HID stream - shouldn't block for too long
-void write(const std::vector<uint8_t>& data);

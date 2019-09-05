@@ -16,22 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#pragma once
-#include <cstddef>
-#include <cstdint>
-#include <vector>
+#include "_Architecture.hpp"
 
-#ifdef DEBUG_STREAMS
-extern std::string cacheDirectory;
+using namespace std;
+
+#if ARCHITECTURE == ARCH_ANDROID
+string hidDev = "/dev/hidg2";
 #endif
-
-#ifdef HID_SOCKET
-extern std::string clientSocket;
-#endif
-
-// Returns either the number of bytes specified,
-// or returns empty vector without discarding bytes from HID stream
-std::vector<uint8_t> readNonBlock(const size_t count);
-
-// Blocking write to HID stream - shouldn't block for too long
-void write(const std::vector<uint8_t>& data);

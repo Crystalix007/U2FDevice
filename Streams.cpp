@@ -17,36 +17,46 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "Streams.hpp"
+#include "Architecture.hpp"
 #include "IO.hpp"
+#include <android/log.h>
 #include <cstdio>
 #include <fcntl.h>
 #include <iostream>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/un.h>
 #include <unistd.h>
 
-using namespace std;
+using std::cerr;
+using std::clog;
+using std::endl;
+using std::runtime_error;
+using std::shared_ptr;
+using std::string;
+
+int initialiseHostDescriptor();
 
 #ifdef DEBUG_STREAMS
+
 FILE* initHTML(FILE* fPtr, const string& title);
+
 void closeHTML(FILE* fPtr);
+
 #endif
 
 shared_ptr<int> getHostDescriptor() {
-	static shared_ptr<int> descriptor{};
-
-	descriptor.reset(new int{ open(HID_DEV, O_RDWR | O_NONBLOCK | O_APPEND) }, [](int* fd) {
-		close(*fd);
-		delete fd;
-	});
-
-	if (*descriptor == -1)
-		throw runtime_error{ "Descriptor is unavailable" };
+	static shared_ptr<int> descriptor{ new int{ initialiseHostDescriptor() }, [](const int* fd) {
+		                                  close(*fd);
+		                                  delete fd;
+		                              } };
 
 	return descriptor;
 }
 
 #ifdef DEBUG_STREAMS
+
 shared_ptr<FILE> getComHostStream() {
 	static shared_ptr<FILE> stream{ fopen((cacheDirectory + "comhost.txt").c_str(), "wb"),
 		                            [](FILE* f) {
@@ -182,4 +192,49 @@ void closeHTML(FILE* fPtr) {
 	              "</html>");
 	fclose(fPtr);
 }
+
 #endif
+
+int initialiseHostDescriptor() {
+	int descriptor;
+
+#ifdef HID_SOCKET
+	descriptor = socket(AF_UNIX, SOCK_SEQPACKET | SOCK_CLOEXEC, 0);
+	if (descriptor == -1)
+		throw runtime_error{ "Unable to open client socket" };
+
+	sockaddr_un serverSockAddr{}, clientSockAddr{};
+
+	clientSockAddr.sun_family = AF_UNIX;
+	strncpy(clientSockAddr.sun_path, clientSocket.c_str(), sizeof(clientSockAddr.sun_path) - 1);
+
+	// Attempt to remove existing
+	unlink(clientSocket.c_str());
+
+	int result = ::bind(descriptor, (sockaddr*)&clientSockAddr, sizeof(clientSockAddr));
+	if (result == -1)
+		throw runtime_error{ "Unable to bind to client socket: " + clientSocket };
+
+	serverSockAddr.sun_family = AF_UNIX;
+	strncpy(serverSockAddr.sun_path, HID_DEV, sizeof(serverSockAddr.sun_path) - 1);
+
+	for (size_t connectCount = 0; connectCount < 100; connectCount++) {
+		result = connect(descriptor, (sockaddr*)&serverSockAddr, sizeof(serverSockAddr));
+		if (result != 1)
+			break;
+		usleep(100000);
+	}
+
+	if (result == -1)
+		throw runtime_error{ "Unable to connect to server socket: " + string{ HID_DEV } };
+
+	__android_log_print(ANDROID_LOG_DEBUG, "U2FDevice", "Connected to server");
+#else
+	descriptor = open(HID_DEV, O_RDWR | O_NONBLOCK | O_APPEND);
+
+	if (descriptor == -1)
+		throw runtime_error{ "Descriptor is unavailable" };
+#endif
+
+	return descriptor;
+}
