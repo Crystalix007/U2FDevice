@@ -36,7 +36,7 @@ using std::runtime_error;
 using std::shared_ptr;
 using std::string;
 
-int initialiseHostDescriptor();
+shared_ptr<int> initialiseHostDescriptor();
 
 #ifdef DEBUG_STREAMS
 
@@ -47,11 +47,7 @@ void closeHTML(FILE* fPtr);
 #endif
 
 shared_ptr<int> getHostDescriptor() {
-	static shared_ptr<int> descriptor{ new int{ initialiseHostDescriptor() }, [](const int* fd) {
-		                                  close(*fd);
-		                                  delete fd;
-		                              } };
-
+	static shared_ptr<int> descriptor{ initialiseHostDescriptor() };
 	return descriptor;
 }
 
@@ -195,7 +191,7 @@ void closeHTML(FILE* fPtr) {
 
 #endif
 
-int initialiseHostDescriptor() {
+shared_ptr<int> initialiseHostDescriptor() {
 	int descriptor;
 
 #ifdef HID_SOCKET
@@ -229,12 +225,21 @@ int initialiseHostDescriptor() {
 		throw runtime_error{ "Unable to connect to server socket: " + string{ HID_DEV } };
 
 	__android_log_print(ANDROID_LOG_DEBUG, "U2FDevice", "Connected to server");
+
+	return shared_ptr<int>{ new int{ descriptor }, [](const int* fd) {
+		                  close(*fd);
+		                  remove(clientSocket.c_str());
+		                  delete fd;
+		              } };
 #else
 	descriptor = open(HID_DEV, O_RDWR | O_NONBLOCK | O_APPEND);
 
 	if (descriptor == -1)
 		throw runtime_error{ "Descriptor is unavailable" };
-#endif
 
-	return descriptor;
+	return shared_ptr<int>{ new int{ descriptor }, [](const int* fd) {
+		                  close(*fd);
+		                  delete fd;
+		              } };
+#endif
 }
