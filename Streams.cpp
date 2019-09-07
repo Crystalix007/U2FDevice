@@ -195,6 +195,10 @@ shared_ptr<int> initialiseHostDescriptor() {
 	int descriptor;
 
 #ifdef HID_SOCKET
+	if (access(clientSocket.c_str(), F_OK)) {
+		remove(clientSocket.c_str());
+	}
+
 	descriptor = socket(AF_UNIX, SOCK_SEQPACKET | SOCK_CLOEXEC, 0);
 	if (descriptor == -1)
 		throw runtime_error{ "Unable to open client socket" };
@@ -216,9 +220,9 @@ shared_ptr<int> initialiseHostDescriptor() {
 
 	for (size_t connectCount = 0; connectCount < 100; connectCount++) {
 		result = connect(descriptor, (sockaddr*)&serverSockAddr, sizeof(serverSockAddr));
-		if (result != 1)
+		if (result != -1)
 			break;
-		usleep(100000);
+		usleep(100'000);
 	}
 
 	if (result == -1)
