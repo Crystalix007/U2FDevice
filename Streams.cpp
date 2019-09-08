@@ -172,6 +172,9 @@ FILE* initHTML(FILE* fPtr, const string& title) {
 void closeHTML(FILE* fPtr) {
 	fprintf(fPtr, "\t</body>\n"
 	              "</html>");
-	fclose(fPtr);
+	int successCode = fclose(fPtr);
+
+	if (successCode != 0)
+		cerr << "File closing error: " << errno << endl;
 }
 #endif
