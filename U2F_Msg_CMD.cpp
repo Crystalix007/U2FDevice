@@ -81,7 +81,12 @@ shared_ptr<U2F_Msg_CMD> U2F_Msg_CMD::generate(const U2FMessage& uMsg) {
 	const uint32_t cBCount = data.size();
 	auto startPtr = data.begin(), endPtr = data.end();
 
-	if (usesData.at(cmd.ins) || data.size() > 3) {
+	const auto cmdUsesData = usesData.find(cmd.ins);
+
+	if (cmdUsesData == usesData.end()) {
+		U2F_Msg_CMD::error(uMsg.cid, APDU_STATUS::SW_INS_NOT_SUPPORTED);
+		throw runtime_error{ "Unknown instruction: unsure if uses data" };
+	} else if (cmdUsesData->second || data.size() > 3) {
 		if (cBCount == 0) {
 			U2F_Msg_CMD::error(uMsg.cid, APDU_STATUS::SW_WRONG_LENGTH);
 			throw runtime_error{ "Invalid command - should have attached data" };

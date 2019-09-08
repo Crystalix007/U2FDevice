@@ -48,17 +48,19 @@ void Controller::handleTransaction(const U2FMessage& msg) {
 
 	lastMessage = chrono::system_clock::now();
 
-	auto opChannel = msg.cid;
+	auto opChannelID = msg.cid;
 
 	if (msg.cmd == U2FHID_INIT) {
-		opChannel = nextChannel();
-		auto channel = Channel{ opChannel };
-
+		opChannelID = nextChannel();
+		auto channel = Channel{ opChannelID };
 		try {
-			channels.emplace(opChannel, channel); // In case of wrap-around replace existing one
+			channels.emplace(opChannelID, channel); // In case of wrap-around replace existing one
 		} catch (...) {
-			channels.insert(make_pair(opChannel, channel));
+			channels.insert(make_pair(opChannelID, channel));
 		}
+	} else if (channels.find(opChannelID) == channels.end()) {
+		U2FMessage::error(opChannelID, ERR_CHANNEL_BUSY);
+		return;
 	}
 
 #ifdef DEBUG_MSGS
@@ -66,7 +68,7 @@ void Controller::handleTransaction(const U2FMessage& msg) {
 	clog << "cid: " << msg.cid << ", cmd: " << static_cast<unsigned int>(msg.cmd) << endl;
 #endif
 
-	channels.at(opChannel).handle(msg);
+	channels.at(opChannelID).handle(msg);
 }
 
 uint32_t Controller::nextChannel() {

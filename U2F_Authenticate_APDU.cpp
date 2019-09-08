@@ -60,7 +60,7 @@ void U2F_Authenticate_APDU::respond(const uint32_t channelID) const {
 	if (Storage::appParams.find(keyHB) == Storage::appParams.end()) {
 		// Respond with error code - key handle doesn't exist in storage
 		cerr << "Invalid key handle" << endl;
-		this->error(channelID, SW_WRONG_DATA);
+		this->error(channelID, APDU_STATUS::SW_WRONG_DATA);
 		return;
 	}
 
