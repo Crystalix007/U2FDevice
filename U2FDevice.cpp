@@ -45,6 +45,7 @@ bool initialiseLights(const string& prog) {
 
 int handleTransactions(const string& prog, const string& privKeyDir) {
 	signal(SIGINT, signalCallback);
+	signal(SIGTERM, signalCallback);
 	Storage::init(privKeyDir);
 	Controller ch{ 0xF1D00000 };
 
