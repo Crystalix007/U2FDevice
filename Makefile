@@ -1,6 +1,7 @@
 #!/usr/bin/env make
 
 SRC_DIR  := .
+KEY_DIR  := Keys
 OBJ_DIR  := obj
 CXXFLAGS := -std=c++11 -MMD -MP -Wall -Wfatal-errors -Wextra -fPIE
 LDFLAGS  := -fPIE
@@ -31,7 +32,7 @@ install: U2FDevice
 	install -m775 -t /etc/systemd/system Services/U2FDevice.service
 	install -d /usr/share/U2FDevice/
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR) $(SRC_DIR)/Certificates.hpp
 	$(CXX) $(STATIC) $(CXXFLAGS) -c -o $@ $<
 
 $(OBJ_DIR):
@@ -45,7 +46,14 @@ clean:
 	$(MAKE) -C micro-ecc clean
 	$(MAKE) -C cpp-base64 clean
 
-.PHONY: clean install
+clean-certificates:
+	rm -f $(KEY_DIR)/*
+	rm -f Certificates.cpp Certificates.hpp
+
+$(SRC_DIR)/Certificates.hpp: $(SRC_DIR)/Certificates.hpp.template
+	$(error "Please run the GenCertificates.sh script to generate certificate before building\n")
+
+.PHONY: clean clean-certificates install
 
 libuECC.a:
 	$(MAKE) -C micro-ecc

@@ -5,3 +5,6 @@ obj/*
 U2F_Priv_Keys.txt
 .ccls-cache
 compile_commands.json
+Certificates.hpp
+Certificates.cpp
+Keys/*
