@@ -16,9 +16,22 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#pragma once
-#include <cstdint>
+#include "Certificates.hpp"
 
-extern uint8_t attestCert[557];
-extern uint8_t attestPrivKey[32];
-extern uint8_t attestPubKey[65];
+// You may not actually want to use these values -
+// having been shared publicly, these may be vulnerable to exploits.
+// However, generating your own attestation certificate makes your device
+// uniquely identifiable across platforms / services, etc.
+// You can generate your own using the method detailed in the README.
+
+uint8_t attestCert[] = {
+	// Generate attestation certificate here
+};
+
+uint8_t attestPrivKey[] = {
+	// Generate private key here
+};
+
+uint8_t attestPubKey[] = {
+	// Generate public key here
+};
