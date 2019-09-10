@@ -21,4 +21,4 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 extern uint8_t attestCert[/* attestation certificate size */];
 extern uint8_t attestPrivKey[/* attestation private key size */];
-extern uint8_t attestPubKey[/* attestion public key size */];
+extern uint8_t attestPubKey[/* attestation public key size */];
