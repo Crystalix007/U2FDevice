@@ -36,7 +36,7 @@ using std::runtime_error;
 using std::shared_ptr;
 using std::string;
 
-shared_ptr<int> initialiseHostDescriptor();
+shared_ptr<int> genHostDescriptor();
 
 #ifdef DEBUG_STREAMS
 
@@ -44,96 +44,112 @@ FILE* initHTML(FILE* fPtr, const string& title);
 
 void closeHTML(FILE* fPtr);
 
+shared_ptr<FILE> genComHostStream();
+shared_ptr<FILE> genHostPacketStream();
+shared_ptr<FILE> genHostAPDUStream();
+shared_ptr<FILE> genComDevStream();
+shared_ptr<FILE> genDevPacketStream();
+shared_ptr<FILE> genDevAPDUStream();
+
 #endif
 
-shared_ptr<int> getHostDescriptor() {
-	static shared_ptr<int> descriptor{ initialiseHostDescriptor() };
+shared_ptr<int>& getHostDescriptor() {
+	static shared_ptr<int> descriptor{
+#ifndef MANUAL_LIFETIME
+		genHostDescriptor()
+#endif
+	};
 	return descriptor;
 }
 
 #ifdef DEBUG_STREAMS
 
-shared_ptr<FILE> getComHostStream() {
-	static shared_ptr<FILE> stream{ fopen((cacheDirectory + "/comhost.txt").c_str(), "wb"),
-		                            [](FILE* f) {
-		                                clog << "Closing comhost stream" << endl;
-		                                fclose(f);
-		                            } };
-
-	if (!stream)
-		clog << "Stream is unavailable" << endl;
-
-	return stream;
-}
-
-shared_ptr<FILE> getHostPacketStream() {
+shared_ptr<FILE>& getComHostStream() {
 	static shared_ptr<FILE> stream{
-		initHTML(fopen((cacheDirectory + "/hostpackets.html").c_str(), "wb"), "Host Packets"),
-		[](FILE* f) {
-		    clog << "Closing hostPackets stream" << endl;
-		    closeHTML(f);
-		}
+#ifndef MANUAL_LIFETIME
+		genComHostStream()
+#endif
 	};
 
+#ifndef MANUAL_LIFETIME
 	if (!stream)
 		clog << "Stream is unavailable" << endl;
+#endif
 
 	return stream;
 }
 
-shared_ptr<FILE> getHostAPDUStream() {
+shared_ptr<FILE>& getHostPacketStream() {
 	static shared_ptr<FILE> stream{
-		initHTML(fopen((cacheDirectory + "/hostAPDU.html").c_str(), "wb"), "Host APDU"),
-		[](FILE* f) {
-		    clog << "Closing host APDU stream" << endl;
-		    closeHTML(f);
-		}
+#ifndef MANUAL_LIFETIME
+		genHostPacketStream()
+#endif
 	};
 
+#ifndef MANUAL_LIFETIME
 	if (!stream)
 		clog << "Stream is unavailable" << endl;
+#endif
 
 	return stream;
 }
 
-shared_ptr<FILE> getComDevStream() {
-	static shared_ptr<FILE> stream{ fopen((cacheDirectory + "/comdev.txt").c_str(), "wb"),
-		                            [](FILE* f) {
-		                                clog << "Closing comdev stream" << endl;
-		                                fclose(f);
-		                            } };
-
-	if (!stream)
-		clog << "Stream is unavailable" << endl;
-
-	return stream;
-}
-
-shared_ptr<FILE> getDevPacketStream() {
+shared_ptr<FILE>& getHostAPDUStream() {
 	static shared_ptr<FILE> stream{
-		initHTML(fopen((cacheDirectory + "/devpackets.html").c_str(), "wb"), "Dev Packets"),
-		[](FILE* f) {
-		    clog << "Closing devPackets stream" << endl;
-		    closeHTML(f);
-		}
+#ifndef MANUAL_LIFETIME
+		genHostAPDUStream()
+#endif
 	};
 
+#ifndef MANUAL_LIFETIME
 	if (!stream)
 		clog << "Stream is unavailable" << endl;
+#endif
 
 	return stream;
 }
 
-shared_ptr<FILE> getDevAPDUStream() {
-	static shared_ptr<FILE> stream{ initHTML(fopen((cacheDirectory + "/devAPDU.html").c_str(), "wb"),
-		                                     "Dev APDU"),
-		                            [](FILE* f) {
-		                                clog << "Closing dev APDU stream" << endl;
-		                                closeHTML(f);
-		                            } };
+shared_ptr<FILE>& getComDevStream() {
+	static shared_ptr<FILE> stream{
+#ifndef MANUAL_LIFETIME
+		genComDevStream()
+#endif
+	};
 
+#ifndef MANUAL_LIFETIME
 	if (!stream)
 		clog << "Stream is unavailable" << endl;
+#endif
+
+	return stream;
+}
+
+shared_ptr<FILE>& getDevPacketStream() {
+	static shared_ptr<FILE> stream{
+#ifndef MANUAL_LIFETIME
+		genDevPacketStream()
+#endif
+	};
+
+#ifndef MANUAL_LIFETIME
+	if (!stream)
+		clog << "Stream is unavailable" << endl;
+#endif
+
+	return stream;
+}
+
+shared_ptr<FILE>& getDevAPDUStream() {
+	static shared_ptr<FILE> stream{
+#ifndef MANUAL_LIFETIME
+		genDevAPDUStream()
+#endif
+	};
+
+#ifndef MANUAL_LIFETIME
+	if (!stream)
+		clog << "Stream is unavailable" << endl;
+#endif
 
 	return stream;
 }
@@ -194,7 +210,7 @@ void closeHTML(FILE* fPtr) {
 
 #endif
 
-shared_ptr<int> initialiseHostDescriptor() {
+shared_ptr<int> genHostDescriptor() {
 	int descriptor;
 
 #ifdef HID_SOCKET
@@ -237,7 +253,7 @@ shared_ptr<int> initialiseHostDescriptor() {
 		                  close(*fd);
 		                  remove(clientSocket.c_str());
 		                  delete fd;
-		              } };
+		              }	};
 #else
 	descriptor = open(HID_DEV, O_RDWR | O_NONBLOCK | O_APPEND);
 
@@ -247,6 +263,81 @@ shared_ptr<int> initialiseHostDescriptor() {
 	return shared_ptr<int>{ new int{ descriptor }, [](const int* fd) {
 		                  close(*fd);
 		                  delete fd;
-		              } };
+		              }	};
 #endif
 }
+
+shared_ptr<FILE> genComHostStream() {
+	return shared_ptr<FILE>{ fopen((cacheDirectory + "/comhost.txt").c_str(), "wb"),
+			[](FILE* f) {
+				clog << "Closing comhost stream" << endl;
+				fclose(f);
+			} };
+}
+
+shared_ptr<FILE> genHostPacketStream() {
+	return shared_ptr<FILE>{ initHTML(fopen((cacheDirectory + "/hostpackets.html").c_str(), "wb"), "Host Packets"),
+			[](FILE* f) {
+				clog << "Closing hostPackets stream" << endl;
+				closeHTML(f);
+			} };
+}
+
+shared_ptr<FILE> genHostAPDUStream() {
+	return shared_ptr<FILE>{ initHTML(fopen((cacheDirectory + "/hostAPDU.html").c_str(), "wb"), "Host APDU"),
+			[](FILE* f) {
+				clog << "Closing host APDU stream" << endl;
+				closeHTML(f);
+			} };
+}
+
+shared_ptr<FILE> genComDevStream() {
+	return shared_ptr<FILE>{ fopen((cacheDirectory + "/comdev.txt").c_str(), "wb"),
+			[](FILE* f) {
+				clog << "Closing comdev stream" << endl;
+				fclose(f);
+			} };
+}
+
+shared_ptr<FILE> genDevPacketStream() {
+	return shared_ptr<FILE>{ initHTML(fopen((cacheDirectory + "/devpackets.html").c_str(), "wb"), "Dev Packets"),
+			[](FILE* f) {
+				clog << "Closing devPackets stream" << endl;
+				closeHTML(f);
+			} };
+}
+
+shared_ptr<FILE> genDevAPDUStream() {
+	return shared_ptr<FILE>{ initHTML(fopen((cacheDirectory + "/devAPDU.html").c_str(), "wb"),
+			 "Dev APDU"),
+			[](FILE* f) {
+				clog << "Closing dev APDU stream" << endl;
+				closeHTML(f);
+			} };
+}
+
+#ifdef MANUAL_LIFETIME
+void initStreams() {
+	getHostDescriptor() = genHostDescriptor();
+
+	getComHostStream() = genComHostStream();
+	getHostPacketStream() = genHostPacketStream();
+	getHostAPDUStream() = genHostAPDUStream();
+
+	getComDevStream() = genComDevStream();
+	getDevPacketStream() = genDevPacketStream();
+	getDevAPDUStream() = genDevAPDUStream();
+}
+
+void closeStreams() {
+	getHostDescriptor().reset();
+
+	getComHostStream().reset();
+	getHostPacketStream().reset();
+	getHostAPDUStream().reset();
+
+	getComDevStream().reset();
+	getDevPacketStream().reset();
+	getDevAPDUStream().reset();
+}
+#endif

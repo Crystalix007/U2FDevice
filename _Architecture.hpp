@@ -35,5 +35,6 @@ extern std::string hidDev;
 #	define HID_DEV hidDev.c_str()
 #	define DEBUG_STREAMS "/sdcard/log"
 #	define HID_SOCKET
+#	define MANUAL_LIFETIME
 // #define DEBUG_MSGS
 #endif

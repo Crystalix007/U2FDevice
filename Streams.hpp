@@ -21,13 +21,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <cstdio>
 #include <memory>
 
-std::shared_ptr<int> getHostDescriptor();
+std::shared_ptr<int>& getHostDescriptor();
+
+#ifdef MANUAL_LIFETIME
+void initStreams();
+void closeStreams();
+#endif
 
 #ifdef DEBUG_STREAMS
-std::shared_ptr<FILE> getComHostStream();
-std::shared_ptr<FILE> getHostPacketStream();
-std::shared_ptr<FILE> getHostAPDUStream();
-std::shared_ptr<FILE> getComDevStream();
-std::shared_ptr<FILE> getDevPacketStream();
-std::shared_ptr<FILE> getDevAPDUStream();
+std::shared_ptr<FILE>& getComHostStream();
+std::shared_ptr<FILE>& getHostPacketStream();
+std::shared_ptr<FILE>& getHostAPDUStream();
+std::shared_ptr<FILE>& getComDevStream();
+std::shared_ptr<FILE>& getDevPacketStream();
+std::shared_ptr<FILE>& getDevAPDUStream();
 #endif
