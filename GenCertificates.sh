@@ -28,4 +28,4 @@ pubSize="$(printf "%s" "${pubkey}" | wc -w)"
 printf "%s\n" "${pubkey}" | sed -e '/\/\/ Generate public key here/{r/dev/stdin
 d }' Keys/Certificates.cpp.template.2 > Certificates.cpp
 
-sed -e "s/\\/\\* attestation certificate size \\*\\//${certificateSize}/; s/\\/\\* attestation private key size \\*\\//${privSize}/; s/\\/\\* attestion public key size \\*\\//${pubSize}/" Certificates.hpp.template > Certificates.hpp
+sed -e "s/\\/\\* attestation certificate size \\*\\//${certificateSize}/; s/\\/\\* attestation private key size \\*\\//${privSize}/; s/\\/\\* attestation public key size \\*\\//${pubSize}/" Certificates.hpp.template > Certificates.hpp
