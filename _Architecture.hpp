@@ -33,7 +33,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #	define STORAGE_PREFIX "/sdcard/U2F/"
 extern std::string hidDev;
 #	define HID_DEV hidDev.c_str()
-#	define DEBUG_STREAMS "/sdcard/log/"
+#	define DEBUG_STREAMS "/sdcard/log"
 #	define HID_SOCKET
 // #define DEBUG_MSGS
 #endif
