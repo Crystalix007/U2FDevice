@@ -211,6 +211,12 @@ Then, reload the rules using `sudo udevadm control --reload-rules `
 4. Make the object file directories using `mkdir obj && mkdir cpp-base64/obj && mkdir micro-ecc/obj`
 5. Grab the required library using `sudo apt-get install libmbedtls-dev`
 
+## Generate a certificate
+
+If you wish to do this automatically, just run `./GenCertificates.sh`, and answer the prompt with as much detail as you feel like entrusting to websites.
+
+Alternatively, see `Readme.AttestationCertifcateGeneration.md` for a much more manual approach.
+
 ## Build the program
 
 1. Run `make`
@@ -243,11 +249,15 @@ For these reasons, if you want to use this as a way to backup your other U2F dev
 
 1. Install `rng-tools` with `sudo apt-get install rng-tools`
 
-## To change the Attestation certificate
+## Notes about a custom attestation certificate
 
-This may be highly advisable, or inadvisable - I am currently unsure. <br />All registration requests use this private key, so likely advisable. <br/>However, you can be uniquely identified by having a unique attestation certificate.
+By using a custom attestation certificate, you lose the anonymity of conventional u2f keys. This is because they are produced in large batches and thus can share a single certificate, burned into some private ROM. However, since you require the private key to sign, and this repo is public, it is impossible to use a single signature for everyone who uses this repository.
 
-See the `Readme.AttestationCertificateGeneration.txt`
+However, by generating your own certificate, you can be more assured about the inherent security of your certificate (no-one can leak the private key but you).
+
+Note, however, that this key and certificate is only used for registration - not for further authentication.
+
+See the `Readme.AttestationCertificateGeneration.md`
 
 # Running the program
 

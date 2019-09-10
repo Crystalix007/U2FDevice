@@ -1,3 +1,9 @@
+# Automatically generate keys
+
+Run `./GenCertificates.sh`, answering the prompt to produce your own certificate.
+
+# Manually generate keys
+
 From [Teensy U2F](https://github.com/pratikd650/Teensy_U2F/blob/master/Teensy_U2F.cpp) line 292
 
 Instructions to generate attestation certificate using open ssl
