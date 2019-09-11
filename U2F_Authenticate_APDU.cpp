@@ -66,22 +66,14 @@ void U2F_Authenticate_APDU::respond(const uint32_t channelID) const {
 
 	auto appMatches = (Storage::appParams.at(keyHB) == appParam);
 
-	U2FMessage msg{};
-	msg.cid = channelID;
-	msg.cmd = U2FHID_MSG;
-
-	auto& response = msg.data;
-	APDU_STATUS statusCode = APDU_STATUS::SW_NO_ERROR;
+	if (!appMatches) {
+		this->error(channelID, APDU_STATUS::SW_WRONG_DATA);
+		return;
+	}
 
 	switch (p1) {
 		case ControlCode::CheckOnly:
-			if (appMatches)
-				statusCode = APDU_STATUS::SW_CONDITIONS_NOT_SATISFIED;
-			else
-				statusCode = APDU_STATUS::SW_WRONG_DATA;
-
-			response.insert(response.end(), FIELD_BE(statusCode));
-			msg.write();
+			this->error(channelID, APDU_STATUS::SW_CONDITIONS_NOT_SATISFIED);
 			return;
 		case ControlCode::EnforcePresenceSign:
 			// Continue processing
@@ -94,6 +86,13 @@ void U2F_Authenticate_APDU::respond(const uint32_t channelID) const {
 			this->error(channelID, APDU_STATUS::SW_INS_NOT_SUPPORTED);
 			return;
 	}
+
+	U2FMessage msg{};
+	msg.cid = channelID;
+	msg.cmd = U2FHID_MSG;
+
+	auto& response = msg.data;
+	APDU_STATUS statusCode = APDU_STATUS::SW_NO_ERROR;
 
 	const auto& privKey = Storage::privKeys[keyHB];
 	auto& keyCount = Storage::keyCounts[keyHB];
