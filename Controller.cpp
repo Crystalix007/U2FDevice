@@ -32,10 +32,10 @@ void Controller::handleTransaction() {
 	if (!msg)
 		return;
 
-	handleTransaction(*msg);
+	handleTransaction(*msg, AuthorisationLevel::Unspecified);
 }
 
-void Controller::handleTransaction(const U2FMessage& msg) {
+bool Controller::handleTransaction(const U2FMessage& msg, AuthorisationLevel auth) {
 	try {
 		if (channels.size() != 0 &&
 		    chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - lastMessage) <
@@ -60,7 +60,7 @@ void Controller::handleTransaction(const U2FMessage& msg) {
 		}
 	} else if (channels.find(opChannelID) == channels.end()) {
 		U2FMessage::error(opChannelID, ERR_CHANNEL_BUSY);
-		return;
+		return true;
 	}
 
 #ifdef DEBUG_MSGS
@@ -68,7 +68,7 @@ void Controller::handleTransaction(const U2FMessage& msg) {
 	clog << "cid: " << msg.cid << ", cmd: " << static_cast<unsigned int>(msg.cmd) << endl;
 #endif
 
-	channels.at(opChannelID).handle(msg);
+	return channels.at(opChannelID).handle(msg, auth);
 }
 
 uint32_t Controller::nextChannel() {

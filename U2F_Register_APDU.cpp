@@ -61,7 +61,13 @@ U2F_Register_APDU::U2F_Register_APDU(const U2F_Msg_CMD& msg, const vector<uint8_
 	Storage::keyCounts[this->keyH] = 0;
 }
 
-void U2F_Register_APDU::respond(const uint32_t channelID) const {
+void U2F_Register_APDU::respond(const uint32_t channelID, bool hasAuthorisation) const {
+	if (!hasAuthorisation) {
+		error(channelID, APDU_STATUS::SW_CONDITIONS_NOT_SATISFIED);
+		return;
+	}
+
+
 	U2FMessage m{};
 	m.cid = channelID;
 	m.cmd = U2FHID_MSG;
@@ -117,4 +123,8 @@ void U2F_Register_APDU::respond(const uint32_t channelID) const {
 	response.push_back(static_cast<uint16_t>(APDU_STATUS::SW_NO_ERROR) & 0xff);
 
 	m.write();
+}
+
+bool U2F_Register_APDU::requiresAuthorisation() const {
+	return true;
 }

@@ -47,7 +47,7 @@ U2F_Authenticate_APDU::U2F_Authenticate_APDU(const U2F_Msg_CMD& msg, const vecto
 	copy(data.begin() + 65, data.begin() + 65 + keyHLen, back_inserter(keyH));
 }
 
-void U2F_Authenticate_APDU::respond(const uint32_t channelID) const {
+void U2F_Authenticate_APDU::respond(const uint32_t channelID, bool hasAuthorisation) const {
 	if (keyH.size() != sizeof(Storage::KeyHandle)) {
 		// Respond with error code - key handle is of wrong size
 		cerr << "Invalid key handle length" << endl;
@@ -70,6 +70,8 @@ void U2F_Authenticate_APDU::respond(const uint32_t channelID) const {
 		this->error(channelID, APDU_STATUS::SW_WRONG_DATA);
 		return;
 	}
+
+	uint8_t presence;
 
 	switch (p1) {
 		case ControlCode::CheckOnly:
@@ -98,7 +100,7 @@ void U2F_Authenticate_APDU::respond(const uint32_t channelID) const {
 	auto& keyCount = Storage::keyCounts[keyHB];
 	keyCount++;
 
-	response.push_back(0x01);
+	response.push_back(hasAuthorisation ? 1u : 0u);
 	response.insert(response.end(), FIELD_BE(keyCount));
 
 	Digest digest;
@@ -110,7 +112,7 @@ void U2F_Authenticate_APDU::respond(const uint32_t channelID) const {
 
 		mbedtls_sha256_update(&shaContext, reinterpret_cast<const uint8_t*>(appParam.data()),
 		                      sizeof(appParam));
-		uint8_t userPresence{ 1u };
+		uint8_t userPresence = hasAuthorisation ? 1u : 0u;
 		mbedtls_sha256_update(&shaContext, &userPresence, 1);
 		const auto beCounter = beEncode(keyCount);
 		mbedtls_sha256_update(&shaContext, beCounter.data(), beCounter.size());
@@ -127,4 +129,8 @@ void U2F_Authenticate_APDU::respond(const uint32_t channelID) const {
 	response.insert(response.end(), FIELD_BE(statusCode));
 
 	msg.write();
+}
+
+bool U2F_Authenticate_APDU::requiresAuthorisation() const {
+	return p1 == ControlCode::EnforcePresenceSign;
 }

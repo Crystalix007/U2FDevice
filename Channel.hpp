@@ -25,6 +25,8 @@ enum class ChannelInitState { Unitialised, Initialised };
 
 enum class ChannelLockedState { Locked, Unlocked };
 
+enum class AuthorisationLevel { Unspecified, Unauthorised, Authorised };
+
 class Channel {
 protected:
 	uint32_t cid;
@@ -33,7 +35,10 @@ protected:
 
 public:
 	Channel(const uint32_t channelID);
-	void handle(const U2FMessage& uMsg);
+
+	// Returns false if requires authorisation check
+	// True otherwise
+	bool handle(const U2FMessage& uMsg, AuthorisationLevel auth);
 
 	uint32_t getCID() const;
 	void init(const ChannelInitState newInitState);

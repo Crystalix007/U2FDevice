@@ -194,6 +194,6 @@ const map<uint8_t, bool> U2F_Msg_CMD::usesData = { { U2F_REG, true },
 	                                               { U2F_AUTH, true },
 	                                               { U2F_VER, false } };
 
-void U2F_Msg_CMD::respond(const uint32_t channelID) const {
+void U2F_Msg_CMD::respond(const uint32_t channelID, bool) const {
 	U2F_Msg_CMD::error(channelID, static_cast<uint16_t>(APDU_STATUS::SW_INS_NOT_SUPPORTED));
 }

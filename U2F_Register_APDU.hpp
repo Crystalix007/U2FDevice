@@ -27,6 +27,8 @@ struct U2F_Register_APDU : U2F_Msg_CMD {
 
 public:
 	U2F_Register_APDU(const U2F_Msg_CMD& msg, const std::vector<uint8_t>& data);
+	virtual ~U2F_Register_APDU() = default;
 
-	void respond(const uint32_t channelID) const override;
+	bool requiresAuthorisation() const override;
+	void respond(const uint32_t channelID, bool hasAuthorisation) const override;
 };

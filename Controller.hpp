@@ -31,6 +31,9 @@ public:
 	Controller(const uint32_t startChannel = 1);
 
 	void handleTransaction();
-	void handleTransaction(const U2FMessage& msg);
+
+	// Returns false if required authentication
+	// Returns true otherwise
+	bool handleTransaction(const U2FMessage& msg, AuthorisationLevel auth);
 	uint32_t nextChannel();
 };

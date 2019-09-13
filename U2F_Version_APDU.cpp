@@ -33,7 +33,7 @@ U2F_Version_APDU::U2F_Version_APDU(const U2F_Msg_CMD& msg, const std::vector<uin
 		throw APDU_STATUS::SW_WRONG_LENGTH;
 }
 
-void U2F_Version_APDU::respond(const uint32_t channelID) const {
+void U2F_Version_APDU::respond(const uint32_t channelID, bool) const {
 	char ver[]{ 'U', '2', 'F', '_', 'V', '2' };
 	U2FMessage m{};
 

@@ -37,7 +37,7 @@ U2F_Init_CMD::U2F_Init_CMD(const U2FMessage& uMsg) {
 	this->nonce = *reinterpret_cast<const uint64_t*>(uMsg.data.data());
 }
 
-void U2F_Init_CMD::respond(const uint32_t channelID) const {
+void U2F_Init_CMD::respond(const uint32_t channelID, bool) const {
 	U2FMessage msg{};
 	msg.cid = CID_BROADCAST;
 	msg.cmd = U2FHID_INIT;

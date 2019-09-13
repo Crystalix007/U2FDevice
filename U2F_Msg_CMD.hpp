@@ -23,7 +23,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <memory>
 #include <vector>
 
-struct U2F_Msg_CMD : U2F_CMD {
+struct U2F_Msg_CMD : public U2F_CMD {
 	uint8_t cla;
 	uint8_t ins;
 	uint8_t p1;
@@ -36,9 +36,10 @@ struct U2F_Msg_CMD : U2F_CMD {
 protected:
 	static uint32_t getLe(const uint32_t byteCount, std::vector<uint8_t> bytes);
 	U2F_Msg_CMD() = default;
+	virtual ~U2F_Msg_CMD() = default;
 
 public:
 	static std::shared_ptr<U2F_Msg_CMD> generate(const U2FMessage& uMsg);
 	static void error(const uint32_t channelID, const uint16_t errCode);
-	void respond(const uint32_t channelID) const;
+	void respond(const uint32_t channelID, bool hasAuthorisation) const;
 };

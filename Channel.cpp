@@ -21,6 +21,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "u2f.hpp"
 #include <iostream>
 #include <stdexcept>
+#include <android/log.h>
 
 using namespace std;
 
@@ -33,7 +34,7 @@ uint32_t Channel::getCID() const {
 	return cid;
 }
 
-void Channel::handle(const U2FMessage& uMsg) {
+bool Channel::handle(const U2FMessage& uMsg, AuthorisationLevel auth) {
 	if (uMsg.cmd == U2FHID_INIT)
 		this->initState = ChannelInitState::Initialised;
 	else if (uMsg.cid != this->cid)
@@ -46,8 +47,21 @@ void Channel::handle(const U2FMessage& uMsg) {
 
 	auto cmd = U2F_CMD::get(uMsg);
 
-	if (cmd)
-		return cmd->respond(this->cid);
+	if (!cmd)
+		return true;
+
+	if (cmd->requiresAuthorisation()) {
+		if (auth == AuthorisationLevel::Unspecified) {
+			__android_log_print(ANDROID_LOG_DEBUG, "U2FDevice",
+								"Action requires authorisation; seeking authorisation");
+			return false;
+		}
+		else if (auth == AuthorisationLevel::Unauthorised)
+			__android_log_print(ANDROID_LOG_DEBUG, "U2FDevice", "Action requires authorisation; authorisation not granted");
+	}
+
+	cmd->respond(this->cid, auth == AuthorisationLevel::Authorised);
+	return true;
 }
 
 void Channel::init(const ChannelInitState newInitState) {

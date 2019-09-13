@@ -42,3 +42,7 @@ shared_ptr<U2F_CMD> U2F_CMD::get(const U2FMessage& uMsg) {
 		return {};
 	}
 }
+
+bool U2F_CMD::requiresAuthorisation() const {
+	return false;
+}
