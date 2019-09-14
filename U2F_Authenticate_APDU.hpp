@@ -20,7 +20,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "Storage.hpp"
 #include "U2F_Msg_CMD.hpp"
 
-struct U2F_Authenticate_APDU : U2F_Msg_CMD {
+class U2F_Authenticate_APDU : public U2F_Msg_CMD {
+protected:
 	uint8_t controlByte;
 	std::array<uint8_t, 32> challengeP;
 	Storage::AppParam appParam;
@@ -32,6 +33,7 @@ public:
 	bool requiresAuthorisation() const override;
 	virtual void respond(const uint32_t channelID, bool hasAuthorisation) const override;
 
+protected:
 	enum ControlCode {
 		CheckOnly = 0x07,
 		EnforcePresenceSign = 0x03,

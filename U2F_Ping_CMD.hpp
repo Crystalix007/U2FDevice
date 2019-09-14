@@ -22,7 +22,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <cstdint>
 #include <memory>
 
-struct U2F_Ping_CMD : U2F_CMD {
+class U2F_Ping_CMD : public U2F_CMD {
+protected:
 	std::vector<uint8_t> nonce;
 
 public:

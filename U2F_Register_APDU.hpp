@@ -20,7 +20,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "Storage.hpp"
 #include "U2F_Msg_CMD.hpp"
 
-struct U2F_Register_APDU : U2F_Msg_CMD {
+class U2F_Register_APDU : public U2F_Msg_CMD {
+protected:
 	std::array<uint8_t, 32> challengeP;
 	Storage::AppParam appP;
 	Storage::KeyHandle keyH;

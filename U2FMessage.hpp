@@ -22,7 +22,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <vector>
 
 struct U2FMessage {
-public:
 	uint32_t cid;
 	uint8_t cmd;
 	std::vector<uint8_t> data;

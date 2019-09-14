@@ -22,7 +22,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <cstdint>
 #include <memory>
 
-struct U2F_Init_CMD : U2F_CMD {
+class U2F_Init_CMD : public U2F_CMD {
+protected:
 	uint64_t nonce;
 
 public:
