@@ -20,7 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "U2FMessage.hpp"
 #include <memory>
 
-struct U2F_CMD {
+class U2F_CMD {
 protected:
 	U2F_CMD() = default;
 

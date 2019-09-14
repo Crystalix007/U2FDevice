@@ -23,7 +23,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <memory>
 #include <vector>
 
-struct U2F_Msg_CMD : U2F_CMD {
+struct U2F_Msg_CMD : public U2F_CMD {
 	uint8_t cla;
 	uint8_t ins;
 	uint8_t p1;
