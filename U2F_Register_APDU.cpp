@@ -26,6 +26,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <cstring>
 #include <exception>
 #include <iostream>
+#include <random>
+#include <limits>
 #include <mbedtls/sha256.h>
 
 using namespace std;
@@ -117,4 +119,16 @@ void U2F_Register_APDU::respond(const uint32_t channelID) const {
 	response.push_back(static_cast<uint16_t>(APDU_STATUS::SW_NO_ERROR) & 0xff);
 
 	m.write();
+}
+
+Storage::KeyHandle U2F_Register_APDU::generateKeyHandle() const {
+	Storage::KeyHandle generatedHandle;
+	random_device generator{};
+	uniform_int_distribution<Storage::KeyHandle> dist{ 1, numeric_limits<Storage::KeyHandle>::max() };
+
+	do {
+		generatedHandle = dist(generator);
+	} while (Storage::pubKeys.find(generatedHandle) != Storage::pubKeys.end());
+
+	return generatedHandle;
 }

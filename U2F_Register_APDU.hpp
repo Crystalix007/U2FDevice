@@ -30,4 +30,7 @@ public:
 	U2F_Register_APDU(const U2F_Msg_CMD& msg, const std::vector<uint8_t>& data);
 
 	void respond(const uint32_t channelID) const override;
+
+protected:
+	Storage::KeyHandle generateKeyHandle() const;
 };
